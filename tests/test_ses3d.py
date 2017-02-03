@@ -44,7 +44,7 @@ def test_ses3d_griddata():
     # Evaluate Prem
     grid_data.set_component('vsv', np.ones(len(grid_data)))
 
-    mod = Ses3d_rbf('japan', os.path.join(TEST_DATA_DIR, 'japan'),
+    mod = Ses3d_rbf('japan', os.path.join(TEST_DATA_DIR, 'japan_test'),
                     components=grid_data.components, interp_method='nearest_neighbour')
     mod.eval_point_cloud_griddata(grid_data)
     mod.eval_point_cloud_griddata(grid_data, interp_method='griddata_linear')
@@ -132,7 +132,7 @@ def test_ses3d_multi_region_write():
     old = np.loadtxt(os.path.join(test_dir, 'vsv'))
     np.testing.assert_allclose(new, old, rtol=1e-2, atol=0.0)
 
-    # Clean up directory.
+    # Clean up directory.conda create -q -n test-environment python=3 numpy scipy pytest cython numba xarray pandas matplotlib PyYAML
     shutil.rmtree(new_write_dir)
 
 
@@ -141,7 +141,7 @@ def test_ses3d_enclosing_element_interpolation():
     Test to ensure that a ses3d model returns itself.
     """
 
-    mod = s3d.Ses3d('japan', os.path.join(TEST_DATA_DIR, 'japan'),
+    mod = s3d.Ses3d('japan', os.path.join(TEST_DATA_DIR, 'japan_test'),
                     components=['rho', 'vsv', 'vsh', 'vp'])
     mod.read()
 
@@ -165,7 +165,7 @@ def test_ses3d_griddata_return_itself():
     Test to ensure that a ses3d model returns itself.
     """
 
-    mod = s3d.Ses3d('japan', os.path.join(TEST_DATA_DIR, 'japan'),
+    mod = s3d.Ses3d('japan', os.path.join(TEST_DATA_DIR, 'japan_test'),
                     components=['rho', 'vsv', 'vsh', 'vp'])
     mod.read()
 
@@ -200,10 +200,12 @@ def test_hdf5_writer():
     Write an hdf5 file
     :return:
     """
-    mod = s3d.Ses3d('europe', os.path.join(TEST_DATA_DIR, 'japan'), components=['rho', 'vp', 'vsh', 'vsv'])
+    mod = s3d.Ses3d('europe', os.path.join(TEST_DATA_DIR, 'japan_test'), components=['rho', 'vp', 'vsh', 'vsv'])
     mod.read()
 
-    mod.write_to_hdf5()
+    filename = os.path.join(TEST_DATA_DIR, 'japan_test.hdf5')
+    mod.write_to_hdf5(filename)
+    os.remove(filename)
 
 def test_rotation():
 
