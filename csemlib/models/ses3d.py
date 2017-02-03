@@ -298,9 +298,8 @@ class Ses3d(Model):
 
         return ses3d_dmn
 
-    def write_to_hdf5(self):
-
-        filename = os.path.join(self.directory, "{}.hdf5".format(self.model_info['model']))
+    def write_to_hdf5(self, filename=None):
+        filename= filename or os.path.join(self.directory, "{}.hdf5".format(self.model_info['model']))
         f = h5py.File(filename, "w")
 
         parameters = ['x', 'y', 'z'] + self.model_info['components']
