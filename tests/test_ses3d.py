@@ -54,12 +54,6 @@ def test_ses3d_griddata():
     mod.eval_point_cloud_griddata(grid_data, interp_method='griddata_linear')
     mod.eval_point_cloud_griddata(grid_data, interp_method='radial_basis_func')
 
-    # Write vtk
-    x, y, z = grid_data.get_coordinates(coordinate_type='cartesian').T
-    elements = triangulate(x, y, z)
-    pts = np.array((x, y, z)).T
-    write_vtk("ses3d_nearest_neighbour.vtk", pts, elements, grid_data.get_component('vsv'), 'ses3dvsv')
-
 
 def test_ses3d_multi_region_read():
     """
