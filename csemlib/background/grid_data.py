@@ -86,15 +86,17 @@ class GridData:
         self.add_col_lon_rad()
 
     def add_one_d(self):
-        one_d_rho, one_d_vpv, one_d_vph, one_d_vsv, one_d_vsh, one_eta = prem_eval_point_cloud(self.df['r'])
+        one_d_rho, one_d_vpv, one_d_vph, one_d_vsv, one_d_vsh, one_eta, one_Qmu, one_Qkappa = csem_1d_background_eval_point_cloud(self.df['r'])
         self.df['one_d_rho'] = one_d_rho
         self.df['one_d_vpv'] = one_d_vpv
         self.df['one_d_vph'] = one_d_vph
         self.df['one_d_vsv'] = one_d_vsv
         self.df['one_d_vsh'] = one_d_vsh
         self.df['one_d_eta'] = one_eta
+        self.df['one_d_Qmu'] = one_Qmu
+        self.df['one_d_Qkappa'] = one_Qkappa
 
     def del_one_d(self):
-        one_d_parameters = ['one_d_rho', 'one_d_vpv', 'one_d_vph', 'one_d_vsv', 'one_d_vsh', 'one_d_eta']
+        one_d_parameters = ['one_d_rho', 'one_d_vpv', 'one_d_vph', 'one_d_vsv', 'one_d_vsh', 'one_d_eta', 'one_d_Qmu', 'one_d_Qkappa']
         for param in one_d_parameters:
             del self.df[param]
