@@ -11,7 +11,7 @@ def prem_no220(rad, region=None):
 
     r_earth = 6371.0
     s_ani = 0.0011
-    r_ani = 6201.0
+    r_ani = 6191.0
     x = rad / r_earth
 
     if rad >= 6292 and region == 'upper_mantle':
@@ -95,7 +95,7 @@ def prem_no220_no_regions(rad):
     """
     r_earth = 6371.0
     s_ani = 0.0011
-    r_ani = 6201.0
+    r_ani = 6191.0
     x = rad / r_earth
 
     if rad >= 6292:
@@ -173,7 +173,7 @@ def prem_no220_no_regions(rad):
 def prem_eval_point_cloud(rad):
     """
     Evaluates 1d_prem for an array containing the radii
-    :param rad: distance from core in kom
+    :param rad: distance from core in km
     :return rho, vpv, vsv, vsh:
     """
     print('Evaluating PREM')
