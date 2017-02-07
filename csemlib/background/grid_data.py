@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import copy
 
-from csemlib.models.one_dimensional import prem_eval_point_cloud
+from csemlib.models.one_dimensional import csem_1d_background_eval_point_cloud
 from csemlib.utils import cart2sph, sph2cart, get_rot_matrix, rotate
 
 
