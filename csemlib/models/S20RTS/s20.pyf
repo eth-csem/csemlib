@@ -1,0 +1,19 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module s20eval ! in 
+    interface  ! in :s20eval
+        subroutine sph2v(npoints,lat,lon,dep,dv_d,mfl,wasread) ! in :s20eval:new_sub.f90
+            integer, optional,intent(in),check(len(lat)>=npoints),depend(lat) :: npoints=len(lat)
+            real(kind=8) dimension(npoints),intent(in) :: lat
+            real(kind=8) dimension(npoints),intent(in),depend(npoints) :: lon
+            real(kind=8) dimension(npoints),intent(in),depend(npoints) :: dep
+            real(kind=8) dimension(npoints),intent(out,in),depend(npoints) :: dv_d
+            character*80 intent(in) :: mfl
+            logical intent(in) :: wasread
+        end subroutine sph2v
+    end interface 
+end python module s20eval
+
+! This file was auto-generated with f2py (version:2).
+! See http://cens.ioc.ee/projects/f2py2e/
