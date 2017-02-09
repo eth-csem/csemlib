@@ -8,7 +8,6 @@ from csemlib.background.grid_data import GridData
 from csemlib.background.fibonacci_grid import FibonacciGrid
 from csemlib.models.crust import Crust
 from csemlib.models.model import triangulate, write_vtk
-from csemlib.models.one_dimensional import prem_eval_point_cloud
 from csemlib.models.s20rts import S20rts
 from csemlib.models.ses3d_rbf import Ses3d_rbf
 from csemlib.utils import cart2sph
