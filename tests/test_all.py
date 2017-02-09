@@ -37,48 +37,6 @@ def test_fibonacci_sphere():
     np.testing.assert_almost_equal(points[2], true_z, decimal=DECIMAL_CLOSE)
 
 
-def test_prem_no220():
-    """
-    Test to (mainly) make sure that discontinuities are handled properly.
-    :return:
-    """
-    reg01 = np.array([3.374814283471982, 8.076866567257888, 4.4708837074242656, 4.570983707424266])
-    reg02 = np.array([3.363837607910846, 8.014433950714174, 4.433659080207189, 4.422659080207189])
-    reg03 = np.array([3.495466943964841, 8.751316606498193, 4.7139374352534915, 4.7139374352534915])
-    reg04 = np.array([3.5432636006906293, 8.905243242819024, 4.7699, 4.7699])
-    reg05 = np.array([3.7237469157118186, 9.133916669282687, 4.932487458797674, 4.932487458797674])
-    reg06 = np.array([3.9758203735677293, 10.157825003924035, 5.5159311881965145, 5.5159311881965145])
-    reg07 = np.array([3.9921213467273584, 10.266174462407786, 5.570211034374509, 5.570211034374509])
-    reg08 = np.array([4.3807429838542795, 10.751407424647873, 5.945126361510368, 5.945126361510368])
-    reg09 = np.array([4.443204194391242, 11.06568986974271, 6.240535840301453, 6.240535840301453])
-    reg10 = np.array([5.491476554415982, 13.680424477483925, 7.2659252231153015, 7.2659252231153015])
-    reg11 = np.array([5.566455445926154, 13.716622269026377, 7.26465059504689, 7.26465059504689])
-    reg12 = np.array([9.903438401183957, 8.064788053141768, 0.0, 0.0])
-    reg13 = np.array([12.166331854652926, 10.35571579802768, 0.0, 0.0])
-    reg14 = np.array([12.763614264456663, 11.02826139091006, 3.5043113193074316, 3.5043113193074316])
-
-    np.testing.assert_almost_equal(m1d.prem_no220(6292, region='upper_mantle'), reg01, decimal=DECIMAL_CLOSE)
-    np.testing.assert_almost_equal(m1d.prem_no220(6191, region='upper_mantle'), reg02, decimal=DECIMAL_CLOSE)
-    np.testing.assert_almost_equal(m1d.prem_no220(6051, region='upper_mantle'), reg03, decimal=DECIMAL_CLOSE)
-    np.testing.assert_almost_equal(m1d.prem_no220(5971, region='upper_mantle'), reg04, decimal=DECIMAL_CLOSE)
-    np.testing.assert_almost_equal(m1d.prem_no220(5971, region='transition_zone'), reg05, decimal=DECIMAL_CLOSE)
-    np.testing.assert_almost_equal(m1d.prem_no220(5771, region='transition_zone'), reg06, decimal=DECIMAL_CLOSE)
-    np.testing.assert_almost_equal(m1d.prem_no220(5701, region='transition_zone'), reg07, decimal=DECIMAL_CLOSE)
-    np.testing.assert_almost_equal(m1d.prem_no220(5701, region='lower_mantle'), reg08, decimal=DECIMAL_CLOSE)
-    np.testing.assert_almost_equal(m1d.prem_no220(5600, region='lower_mantle'), reg09, decimal=DECIMAL_CLOSE)
-    np.testing.assert_almost_equal(m1d.prem_no220(3630, region='lower_mantle'), reg10, decimal=DECIMAL_CLOSE)
-    np.testing.assert_almost_equal(m1d.prem_no220(3480, region='lower_mantle'), reg11, decimal=DECIMAL_CLOSE)
-    np.testing.assert_almost_equal(m1d.prem_no220(3480, region='outer_core'), reg12, decimal=DECIMAL_CLOSE)
-    np.testing.assert_almost_equal(m1d.prem_no220(1221.5, region='outer_core'), reg13, decimal=DECIMAL_CLOSE)
-    np.testing.assert_almost_equal(m1d.prem_no220(1221.5, region='inner_core'), reg14, decimal=DECIMAL_CLOSE)
-
-    # Make sure that questionable requests will error out.
-    with pytest.raises(ValueError):
-        m1d.prem_no220(6371, 'uppermantle')
-    with pytest.raises(ValueError):
-        m1d.prem_no220(5971, 'lower_mantle')
-
-
 def test_crust():
     """
     Test to ensure that the crust returns correct values.
@@ -227,39 +185,6 @@ def test_s20rts_out_of_bounds():
     with pytest.raises(ValueError):
         mod.eval(0, 0, 7000)
 
-def test_add_crust_and_s20rts_prem():
-    """
-    Test where both s20rts and the crust with topography are added to prem.
-    """
-
-    # Generate point cloud based on average distance to the next point
-    fib_grid = FibonacciGrid()
-    # Set global background grid
-    radii = np.linspace(6371.0, 0.0, 10)
-    resolution = np.ones_like(radii) * (6371.0 - 0.0) / 10
-    fib_grid.set_global_sphere(radii, resolution)
-
-    grid_data = GridData(*fib_grid.get_coordinates())
-
-    # Evaluate Prem
-    rho, vpv, vsv, vsh = m1d.prem_eval_point_cloud(grid_data.df['r'])
-    grid_data.set_component('vsv', vsv)
-
-    # Evaluate s20rts
-    s20mod = s20.S20rts()
-    s20mod.eval_point_cloud_griddata(grid_data)
-
-    # Evaluate Crust
-    cst = crust.Crust()
-    cst.eval_point_cloud_grid_data(grid_data)
-
-    # Generate mesh for plotting (normalised coordinates)
-    x, y, z = grid_data.get_coordinates(coordinate_type='cartesian').T
-    elements = triangulate(x, y, z)
-    coords = np.array((x, y, z)).T
-
-    # Write to vtk
-    write_vtk(os.path.join(VTK_DIR, 'prem_crust_vsv.vtk'), coords, elements, grid_data.get_component('vsv'), 'vsv')
 
 def test_topo():
     """
