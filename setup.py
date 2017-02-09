@@ -19,5 +19,6 @@ module1 = Extension(include_dirs=['./csemlib/models/S20RTS/'], name='s20eval',
                              './csemlib/models/S20RTS/sph2v_sub.f'])
 
 setup(name='csemlib',
-      ext_modules=[module1], requires=['numpy']
+      ext_modules=[module1], requires=['click', 'numpy', 'scipy', 'matplotlib', 'xarray', 'meshpy', 'numba', 'cython', 'pyvtk', 'boltons', 'PyYAML',
+                      'h5py']
       )
