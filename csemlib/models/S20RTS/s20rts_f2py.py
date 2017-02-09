@@ -41,17 +41,16 @@ class S20rts_f2py(Model):
         wasread = False
         dv = np.zeros(len(lat))
 
-        # Interpolate
-        #mfl = '/home/sed/CSEM/csemlib/csemlib/models/s20RTS/S20RTS.sph'
-        print(s20eval.sph2v(lat, lon, dep, dv, mfl, wasread))
+        # get velocity perturbation
+        dv = s20eval.sph2v(lat, lon, dep, dv, mfl, wasread)
         return dv
 
 
     def split_domains_griddata(self, GridData):
         """
-        This splits an array of pts of all values into a
-        :param pts:
-        :return:
+        This returns a new GridData object which only includes the points that lie within the S20RTS domain
+        :param GridData:
+        :return s20rts_dmn:
         """
 
         s20rts_dmn = GridData.copy()
@@ -65,27 +64,12 @@ class S20rts_f2py(Model):
         """
         This returns the linearly interpolated perturbations of s20rts. Careful only points that fall inside
         of the domain of s20rts are returned.
-        :param c: colatitude
-        :param l: longitude
-        :param r: distance from core in km
-        :param rho: param to be returned - currently not used
-        :param vpv: param to be returned - currently not used
-        :param vsv: param to be returned - currently not used
-        :param vsh: param to be returned - currently not used
-        :return c, l, r, rho, vpv, vsv, vsh
+        :param GridData: Object of the GridData class
+        :return updates GridData
         """
         print('Evaluating S20RTS')
         self.read()
         s20rts_dmn = self.split_domains_griddata(GridData)
-
-        # import f2py library
-
-
-
-        # convert to lat, lon, dep format as required by f2py
-        # lat format f2py: -90 to 90
-        # lon format f2py -180 to 180
-        # dep is distance from r_earth
 
         lat = 90.0 - np.degrees(s20rts_dmn.df['c'])
         lon = np.degrees(s20rts_dmn.df['l']) - 360.0
@@ -93,7 +77,7 @@ class S20rts_f2py(Model):
         wasread = False
         dv = np.zeros(len(lat))
 
-        # Interpolate
+        # Get velocity perturbation
         dv = s20eval.sph2v(lat, lon, dep, dv, mfl, wasread)
 
         # Compute vp perturbations
