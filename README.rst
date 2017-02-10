@@ -37,11 +37,14 @@ Installation on Linux and MAC OS X
 Example
 ^^^^^^^
 
+The code block below shows an example where S20RTS and a crustal model are added to a 1D background model.
+
+
 .. code-block:: python
 
    import numpy as np
    from csemlib.background.fibonacci_grid import FibonacciGrid
-   from csemlib.background.grid_data import GridData\
+   from csemlib.background.grid_data import GridData
    from csemlib.models.crust import Crust
    from csemlib.models.model import triangulate, write_vtk
    from csemlib.models.S20RTS.s20rts_f2py import S20rts_f2py
@@ -71,5 +74,5 @@ Example
    elements = triangulate(x, y, z)
    coords = np.array((x, y, z)).T
 
-   write_vtk('prem_s20_crust_vsv.vtk'), coords, elements, grid_data.get_component('vsv'), 'vsv')
+   write_vtk('prem_s20_crust_vsv.vtk', coords, elements, grid_data.get_component('vsv'), 'vsv')
 
