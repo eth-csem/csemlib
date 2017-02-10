@@ -4,9 +4,9 @@
 csemlib
 =======
 
---------------------------------------------------------
-Python package that enables extracting CSEM for any grid
---------------------------------------------------------
+-----------------------------------------------
+Python package that enables extracting the CSEM
+-----------------------------------------------
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Installation on Linux and MAC OS X
