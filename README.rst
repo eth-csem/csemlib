@@ -18,7 +18,7 @@ Installation on Linux and MAC OS X
 
 * To ensure correct installation create a conda environment by typing::
 
-     conda create --name csemlib-env python=3 numpy numba
+     conda create --name csemlib-env python=3 numpy scipy pytest cython numba xarray pandas matplotlib PyYAML
      source activate csemlib-env
 
 * Change directory to csemlib and install by typing::

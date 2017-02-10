@@ -18,3 +18,22 @@ def fibonacci_sphere(n_samples):
 
     g = np.vectorize(populate)
     return np.fromfunction(g, (n_samples,))
+
+def fib_plane(n_samples):
+    r_start = 0.0
+    r_end = 1.0
+    part_of_circle = 1
+    r_step = (r_end - r_start) / n_samples
+    golden_angle = math.pi * (3.0 - math.sqrt(5.0)) * part_of_circle
+
+    def populate(idx):
+        r = np.sqrt(r_start + r_step * idx)
+
+        phi = (idx * golden_angle) % (part_of_circle * 2 * math.pi)
+        z = math.cos(phi) * r
+        x = math.sin(phi) * r
+        y = 0.0
+        return x, y, z
+
+    g = np.vectorize(populate)
+    return np.fromfunction(g, (n_samples,))
