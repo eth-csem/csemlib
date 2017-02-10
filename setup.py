@@ -16,10 +16,3 @@ setup(
     ''',
     ext_modules=[module1]
 )
-
-
-#
-# setup(name='csemlib',
-#       ext_modules=[module1], install_requires=['click', 'numpy', 'scipy', 'matplotlib', 'xarray', 'meshpy', 'numba', 'cython', 'pyvtk', 'boltons', 'PyYAML',
-#                       'h5py']
-#       )

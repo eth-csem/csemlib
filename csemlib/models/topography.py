@@ -3,6 +3,7 @@ import os
 import numpy as np
 import scipy.interpolate as interp
 import xarray
+import h5py
 
 from .model import Model
 
@@ -39,9 +40,14 @@ class Topography(Model):
         #     # Resample such that there are no points at the poles
         #     topo_resampled = topo_reshaped[1::2, 1::2]
         #     topo_1d = topo_resampled.reshape(np.size(topo_resampled))
-        #     np.savetxt(os.path.join(self.directory, 'topo_resampled'), topo_1d, fmt='%.0f')
+        #     np.savetxt(os.path.join(self.directory, 'topo_resampled.txt'), topo_1d, fmt='%.0f')
+        # val = np.genfromtxt(os.path.join(self.directory, 'topo_resampled.txt'))
 
-        val = np.genfromtxt(os.path.join(self.directory, 'topo_resampled'))
+        # Read values
+        filename = os.path.join(self.directory, 'topo_resampled.hdf5')
+        f = h5py.File(filename, "r")
+        val = f['topo_resampled'][:]
+
         # new sampling:
         start = 1.0/6.0
         col = np.linspace(start, 180 - start, 540)
