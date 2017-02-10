@@ -3,9 +3,15 @@ from numpy.distutils.core import setup, Extension
 module1 = Extension(include_dirs=['./csemlib/models/S20RTS/'], name='s20eval',
                     sources=['./csemlib/models/S20RTS/s20.pyf', './csemlib/models/S20RTS/s20_wrapper.f90',
                              './csemlib/models/S20RTS/sph2v_sub.f'])
+
+def readme():
+    with open('README.rst') as f:
+        return f.read()
+
 setup(
     name='csemlib',
     version='0.1',
+    long_description=readme(),
     packages=find_packages(),
     include_package_data=True,
     install_requires=['click', 'numpy', 'scipy', 'matplotlib', 'xarray', 'meshpy', 'numba', 'cython', 'pyvtk', 'boltons', 'PyYAML',
