@@ -38,6 +38,7 @@ Example
 ^^^^^^^
 
 .. code-block:: python
+    :linenos:
 
    import numpy as np
    from csemlib.background.fibonacci_grid import FibonacciGrid
