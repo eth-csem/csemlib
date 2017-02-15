@@ -2,19 +2,22 @@ import pandas as pd
 import numpy as np
 import copy
 
-from csemlib.models.one_dimensional import csem_1d_background_eval_point_cloud
+from csemlib.models.one_dimensional import csem_1d_background_eval_point_cloud, \
+    csem_1d_background_eval_point_cloud_region_specified
 from csemlib.utils import cart2sph, sph2cart, get_rot_matrix, rotate
 
 
 class GridData:
     """
     Class that serves as a collection point of information on the grid,
-    its coordinates and the corresponding data. Data and coordinates must have the same length.
+    its coordinates and the corresponding data. Data is structured using a pandas DataFrame. Additional functionality
+    is build on top of that.
     """
 
-    def __init__(self, x=[], y=[], z=[], components=[], coord_system='cartesian'):
+    def __init__(self, x=[], y=[], z=[], components=[], coord_system='cartesian', solver=None):
         self.coordinate_system = coord_system
         self.components = []
+        self.solver = solver
         if self.coordinate_system == 'cartesian':
             self.coordinates = ['x', 'y', 'z']
         elif self.coordinate_system == 'spherical':
@@ -85,7 +88,7 @@ class GridData:
         # Also update c,l,r coordinates
         self.add_col_lon_rad()
 
-    def add_one_d(self):
+    def add_one_d(self, add_to_components=True):
         one_d_rho, one_d_vpv, one_d_vph, one_d_vsv, one_d_vsh, one_eta, one_Qmu, one_Qkappa = csem_1d_background_eval_point_cloud(self.df['r'])
         self.df['one_d_rho'] = one_d_rho
         self.df['one_d_vpv'] = one_d_vpv
@@ -96,7 +99,40 @@ class GridData:
         self.df['one_d_Qmu'] = one_Qmu
         self.df['one_d_Qkappa'] = one_Qkappa
 
+        if add_to_components:
+            self.set_component('rho', self.df['one_d_rho'])
+            self.set_component('vsh', self.df['one_d_vsh'])
+            self.set_component('vsv', self.df['one_d_vsv'])
+            self.set_component('vph', self.df['one_d_vph'])
+            self.set_component('vpv', self.df['one_d_vpv'])
+            self.set_component('eta', self.df['one_d_eta'])
+            self.set_component('Qmu', self.df['one_d_Qmu'])
+            self.set_component('QKappa', self.df['one_d_Qkappa'])
+
     def del_one_d(self):
         one_d_parameters = ['one_d_rho', 'one_d_vpv', 'one_d_vph', 'one_d_vsv', 'one_d_vsh', 'one_d_eta', 'one_d_Qmu', 'one_d_Qkappa']
         for param in one_d_parameters:
             del self.df[param]
+
+    def add_one_d_salvus(self, regions, add_to_components=True):
+        one_d_rho, one_d_vpv, one_d_vph, one_d_vsv, one_d_vsh, one_eta, one_Qmu, one_Qkappa = \
+            csem_1d_background_eval_point_cloud_region_specified(self.df['r'], regions)
+
+        self.df['one_d_rho'] = one_d_rho
+        self.df['one_d_vpv'] = one_d_vpv
+        self.df['one_d_vph'] = one_d_vph
+        self.df['one_d_vsv'] = one_d_vsv
+        self.df['one_d_vsh'] = one_d_vsh
+        self.df['one_d_eta'] = one_eta
+        self.df['one_d_Qmu'] = one_Qmu
+        self.df['one_d_Qkappa'] = one_Qkappa
+
+        if add_to_components:
+            self.set_component('rho', self.df['one_d_rho'])
+            self.set_component('vsh', self.df['one_d_vsh'])
+            self.set_component('vsv', self.df['one_d_vsv'])
+            self.set_component('vph', self.df['one_d_vph'])
+            self.set_component('vpv', self.df['one_d_vpv'])
+            self.set_component('eta', self.df['one_d_eta'])
+            self.set_component('Qmu', self.df['one_d_Qmu'])
+            self.set_component('QKappa', self.df['one_d_Qkappa'])

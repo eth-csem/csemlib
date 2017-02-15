@@ -17,8 +17,8 @@ class Ses3d_rbf(Ses3d):
     Class built open Ses3D which adds extra interpolation methods
     """
 
-    def __init__(self, name, directory, components=[], doi=None, interp_method='nearest_neighbour'):
-        super(Ses3d_rbf, self).__init__(name, directory, components, doi)
+    def __init__(self, directory, components, interp_method='nearest_neighbour'):
+        super(Ses3d_rbf, self).__init__(directory, components)
         self.grid_data_ses3d = None
         self.interp_method = interp_method
 
@@ -43,6 +43,7 @@ class Ses3d_rbf(Ses3d):
     def eval_point_cloud_griddata(self, GridData, interp_method=None):
         print('Evaluating SES3D model:', self.model_info['model'])
         interp_method = interp_method or self.interp_method
+
 
         # make a loop here to go through each region one at a time
         for region in range(self.model_info['region_info']['num_regions']):
