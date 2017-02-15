@@ -196,7 +196,7 @@ def test_hdf5_writer():
 
     filename = os.path.join(TEST_DATA_DIR, 'japan_test.hdf5')
     mod.write_to_hdf5(filename)
-    #os.remove(filename)
+    os.remove(filename)
 
 def test_rotation():
 
