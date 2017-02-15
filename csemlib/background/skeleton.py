@@ -30,10 +30,9 @@ def fib_plane(n_samples):
         r = np.sqrt(r_start + r_step * idx)
 
         phi = (idx * golden_angle) % (part_of_circle * 2 * math.pi)
-        z = math.cos(phi) * r
+        y = math.cos(phi) * r
         x = math.sin(phi) * r
-        y = 0.0
-        return x, y, z
+        return x, y
 
     g = np.vectorize(populate)
     return np.fromfunction(g, (n_samples,))

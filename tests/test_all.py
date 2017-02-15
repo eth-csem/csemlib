@@ -10,12 +10,9 @@ import csemlib.background.skeleton as skl
 import csemlib.models.crust as crust
 import csemlib.models.one_dimensional as m1d
 import csemlib.models.s20rts as s20
-import csemlib.models.ses3d as s3d
-from csemlib.background.fibonacci_grid import FibonacciGrid
-from csemlib.background.grid_data import GridData
 from csemlib.models.model import triangulate, write_vtk
 from csemlib.models.topography import Topography
-from csemlib.utils import cart2sph, sph2cart
+from csemlib.utils import cart2sph
 import boltons.fileutils
 
 TEST_DATA_DIR = os.path.join(os.path.split(__file__)[0], 'test_data')
@@ -35,6 +32,16 @@ def test_fibonacci_sphere():
     np.testing.assert_almost_equal(points[0], true_x, decimal=DECIMAL_CLOSE)
     np.testing.assert_almost_equal(points[1], true_y, decimal=DECIMAL_CLOSE)
     np.testing.assert_almost_equal(points[2], true_z, decimal=DECIMAL_CLOSE)
+
+def test_fibonacci_plane():
+    true_x = np.array([0., 0.21360879, -0.44550123, 0.43467303, -0.11016234, -0.37952405, 0.74803968,
+                       -0.74249263, 0.30682308, 0.36197619])
+    true_y = np.array([0., -0.23317651, 0.03909797, 0.33325569, -0.62278749, 0.59662509, -0.20108863,
+                       -0.38562248, 0.84015451, -0.87691119])
+
+    points = skl.fib_plane(10)
+    np.testing.assert_almost_equal(points[0], true_x, decimal=DECIMAL_CLOSE)
+    np.testing.assert_almost_equal(points[1], true_y, decimal=DECIMAL_CLOSE)
 
 
 def test_crust():

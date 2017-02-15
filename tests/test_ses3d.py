@@ -123,7 +123,7 @@ def test_ses3d_multi_region_write():
     old = np.loadtxt(os.path.join(test_dir, 'vsv'))
     np.testing.assert_allclose(new, old, rtol=1e-2, atol=0.0)
 
-    # Clean up directory.conda create -q -n test-environment python=3 numpy scipy pytest cython numba xarray pandas matplotlib PyYAML
+    # Clean up directory
     shutil.rmtree(new_write_dir)
 
 
