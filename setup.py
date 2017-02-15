@@ -2,7 +2,7 @@ import os
 
 from setuptools import find_packages
 from numpy.distutils.core import setup, Extension
-import inspect
+
 
 src = 'csemlib/src/'
 
