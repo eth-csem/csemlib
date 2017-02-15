@@ -207,10 +207,11 @@ class Ses3d(Model):
 
     def eval_point_cloud_griddata(self, GridData):
         # Read model
+        self.components = list(set(self.model_info['components']).intersection(GridData.components))
         if self.model_info['taper']:
-            self.components = ['taper'] + GridData.components
-        else:
-            self.components = GridData.components
+            self.components = ['taper'] + self.components
+
+
         self.read()
         # Get dmn
         for region in range(self.model_info['region_info']['num_regions']):
