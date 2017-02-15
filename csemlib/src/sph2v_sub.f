@@ -230,7 +230,7 @@ c--
  100  stop 'incompatible sph header'
 
  200  continue
-      
+
 
       end
 
