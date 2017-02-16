@@ -1,5 +1,7 @@
 import numpy as np
 
+CSEM_DISCONTINUITIES = np.array([0.0, 1221.5, 3480.0, 3630.0, 5600.0, 5701.0,
+                                5771.0, 5971.0, 6051.0, 6191.0, 6291.0, 6371.0])
 
 def csem_1d_background(rad, region=None):
     regions = {'upper_mantle', 'transition_zone', 'lower_mantle', 'outer_core', 'inner_core'}
@@ -63,7 +65,7 @@ def csem_1d_background(rad, region=None):
         eta = 0.0
         Qmu = 143.0
         Qkappa = 57823.0
-        return rho, vpv, vsv, vph, vsh, eta, Qmu, Qkappa
+        return rho, vpv, vph, vsv, vsh, eta, Qmu, Qkappa
 
     #- 600-670 km depth (670 km discontinuity).
     elif 5771.0 >= rad >= 5701.0 and region == 'transition_zone':
@@ -73,7 +75,7 @@ def csem_1d_background(rad, region=None):
         eta = 0.0
         Qmu = 143.0
         Qkappa = 57823.0
-        return rho, vpv, vsv, vph, vsh, eta, Qmu, Qkappa
+        return rho, vpv, vph, vsv, vsh, eta, Qmu, Qkappa
 
     #- 670-771 km depth.
     elif 5701.0 >= rad >= 5600.0 and region == 'lower_mantle':
