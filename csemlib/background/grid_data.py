@@ -114,9 +114,13 @@ class GridData:
         for param in one_d_parameters:
             del self.df[param]
 
-    def add_one_d_salvus(self, regions, add_to_components=True):
-        one_d_rho, one_d_vpv, one_d_vph, one_d_vsv, one_d_vsh, one_eta, one_Qmu, one_Qkappa = \
-            csem_1d_background_eval_point_cloud_region_specified(self.df['r'], regions)
+    def add_one_d_salvus(self, regions, add_to_components=True, initialize_with_one=False):
+        if initialize_with_one:
+            one_d_rho = one_d_vpv = one_d_vph = one_d_vsv = one_d_vsh = one_eta = one_Qmu = one_Qkappa\
+                = np.ones_like(self.df['r'])
+        else:
+            one_d_rho, one_d_vpv, one_d_vph, one_d_vsv, one_d_vsh, one_eta, one_Qmu, one_Qkappa = \
+                csem_1d_background_eval_point_cloud_region_specified(self.df['r'], regions)
 
         self.df['one_d_rho'] = one_d_rho
         self.df['one_d_vpv'] = one_d_vpv

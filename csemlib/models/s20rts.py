@@ -39,7 +39,6 @@ class S20rts(Model):
         lon = np.degrees(l) - 360.0
         dep = self.r_earth - rad
 
-        print(np.shape(dep))
         dv = np.zeros(len(lat))
 
         # Get velocity perturbation
@@ -75,14 +74,9 @@ class S20rts(Model):
         if len(s20rts_dmn) < 1:
             return GridData
 
-        lat = 90.0 - np.degrees(s20rts_dmn.df['c'])
-        lon = np.degrees(s20rts_dmn.df['l']) - 360.0
-        dep = self.r_earth - s20rts_dmn.df['r']
-        dv = np.zeros(len(lat))
-
         # Get velocity perturbation
-        dv = s20eval.sph2v(lat, lon, dep, dv, self.mfl, self.wasread)
-        self.wasread = False
+        dv = self.eval(s20rts_dmn.df['c'], s20rts_dmn.df['l'], s20rts_dmn.df['r'])
+
         # Compute vp perturbations
         R0 = 1.25
         R2891 = 3.0

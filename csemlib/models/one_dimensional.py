@@ -73,7 +73,7 @@ def csem_1d_background(rad, region=None):
         eta = 0.0
         Qmu = 143.0
         Qkappa = 57823.0
-        return rho, vpv, vph, vsv, vsh, eta, Qmu, Qkappa
+        return rho, vpv, vsv, vph, vsh, eta, Qmu, Qkappa
 
     #- 670-771 km depth.
     elif 5701.0 >= rad >= 5600.0 and region == 'lower_mantle':
@@ -332,7 +332,7 @@ def csem_1d_background_regional(rad, region):
         eta = 0.0
         Qmu = 143.0
         Qkappa = 57823.0
-        return rho, vpv, vsv, vph, vsh, eta, Qmu, Qkappa
+        return rho, vpv, vph, vsv, vsh, eta, Qmu, Qkappa
 
     #- 600-670 km depth (670 km discontinuity).
     elif region == 5:
