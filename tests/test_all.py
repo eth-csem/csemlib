@@ -1,14 +1,11 @@
 import os
 
 import numpy as np
-import pytest
-import xarray
 from meshpy.tet import MeshInfo, build, Options
 
 import csemlib
 import csemlib.background.skeleton as skl
 import csemlib.models.crust as crust
-import csemlib.models.one_dimensional as m1d
 import csemlib.models.s20rts as s20
 from csemlib.models.model import triangulate, write_vtk
 from csemlib.models.topography import Topography
@@ -188,10 +185,10 @@ def test_topo():
     topo = Topography()
     topo.read()
 
-    x, y, z = skl.fibonacci_sphere(10000)
+    x, y, z = skl.fibonacci_sphere(300)
     c, l, _ = cart2sph(x, y, z)
 
-    vals = topo.eval(c, l, param='topo')
+    vals = topo.eval(c, l)
     elements = triangulate(x, y, z)
 
     pts = np.array((x, y, z)).T
@@ -201,6 +198,6 @@ def test_topo():
     south_pole = np.array([-0.056])
     random_point = np.array([0.103])
 
-    np.testing.assert_almost_equal(topo.eval(0, 0, param='topo'), north_pole, decimal=DECIMAL_CLOSE)
-    np.testing.assert_almost_equal(topo.eval(np.pi, 0, param='topo'), south_pole, decimal=DECIMAL_CLOSE)
-    np.testing.assert_almost_equal(topo.eval(np.radians(90 - 53.833333), np.radians(76.500000), param='topo'), random_point, decimal=DECIMAL_CLOSE)
+    np.testing.assert_almost_equal(topo.eval(0, 0), north_pole, decimal=DECIMAL_CLOSE)
+    np.testing.assert_almost_equal(topo.eval(np.pi, 0), south_pole, decimal=DECIMAL_CLOSE)
+    np.testing.assert_almost_equal(topo.eval(np.radians(90 - 53.833333), np.radians(76.500000)), random_point, decimal=DECIMAL_CLOSE)
