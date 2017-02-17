@@ -262,7 +262,7 @@ def csem_1d_background_no_regions(rad):
 def csem_1d_background_eval_point_cloud(rad):
     """
     Evaluates 1d_prem for an array containing the radii
-    :param rad: distance from core in km
+    :param rad: radius in km
     :return rho, vpv, vph, vsv, vsh, eta, Qmu, Qkappa:
     """
     print('Evaluating PREM')

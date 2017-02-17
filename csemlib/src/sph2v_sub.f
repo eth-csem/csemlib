@@ -16,7 +16,6 @@ c			use exodus
       save x, lmx, nsmx, ndmx, ndmn
 
 c     read sph model
-c     mfl = '../csemlib/models/s20RTS/S20RTS.sph'
       if (.not. wasread) then
         call rmod(mfl,x,lmx,nsmx,ndmx,ndmn)
       end if
