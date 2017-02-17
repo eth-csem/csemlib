@@ -25,6 +25,7 @@ def test_topography():
 
     top = Topography()
     top.read()
+    # 1000
     topo = top.eval(grid_data.df['c'], grid_data.df['l'], topo_smooth_factor=0.)
 
     x, y, z = grid_data.get_coordinates().T
@@ -32,7 +33,7 @@ def test_topography():
     coords = np.array((x, y, z)).T
 
     # Test if topography does not change
-    mean_topo_test = np.array([-2.46202810922])
+    mean_topo_test = np.array([-2.44594261115])
     mean_topo = np.mean(topo)
     np.testing.assert_almost_equal(mean_topo, mean_topo_test, decimal=DECIMAL_CLOSE)
 

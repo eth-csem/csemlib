@@ -25,17 +25,23 @@ class Topography(Model):
 
     def read(self):
         # Read txt file
-        #val = np.genfromtxt(os.path.join(self.directory, 'topo_resampled.txt'))
+        #val = np.genfromtxt(os.path.join(self.directory, 'topo_resampled_1hour.txt'))
+
+        # write hdf5
+        # filename = os.path.join(self.directory, 'topo_resampled_1hour.hdf5')
+        # f = h5py.File(filename, "w")
+        # f.create_dataset('topo_resampled', data=val, dtype='f')
+        # f.close()
 
         # Read values hdf5
-        filename = os.path.join(self.directory, 'topo_resampled.hdf5')
+        filename = os.path.join(self.directory, 'topo_resampled_1hour.hdf5')
         f = h5py.File(filename, "r")
         val = f['topo_resampled'][:]
 
         # sampling:
-        start = 1.0/6.0
-        col = np.linspace(start, 180 - start, 540)
-        lon = np.linspace(start, 360 - start, 1080)
+        start = 1
+        col = np.linspace(start, 180-start, 179)
+        lon = np.linspace(start, 360-start, 359)
         # Reshape
         val = val.reshape(len(col), len(lon))
 

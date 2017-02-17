@@ -196,7 +196,7 @@ def test_topo():
 
     north_pole = np.array([-4.228])
     south_pole = np.array([-0.056])
-    random_point = np.array([0.103])
+    random_point = np.array([0.097533])
 
     np.testing.assert_almost_equal(topo.eval(0, 0), north_pole, decimal=DECIMAL_CLOSE)
     np.testing.assert_almost_equal(topo.eval(np.pi, 0), south_pole, decimal=DECIMAL_CLOSE)
