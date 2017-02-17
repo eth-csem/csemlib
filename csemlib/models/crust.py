@@ -6,7 +6,7 @@ import scipy.interpolate as interp
 import xarray
 
 from .model import Model
-from csemlib.models.topography import Topography
+from .topography import Topography
 
 
 

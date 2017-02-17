@@ -204,7 +204,6 @@ c ------------------------------------------------------------------------
       open(10,file=infl,status='old')
       read(10,*) lmx,dum,nsmx
 
-
 c--   JR:
 c--   Hardwired are the following four parameters.
 c--   See also Hendrik's original code.
@@ -224,13 +223,13 @@ c--
         ind=ind1+1
        Enddo
       Enddo
-
+      close(10)
       goto 200
 
  100  stop 'incompatible sph header'
 
  200  continue
-      
+
 
       end
 

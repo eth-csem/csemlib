@@ -26,8 +26,12 @@ class S20rts_f2py(Model):
                                 5872.18, 5774.69, 5667.44, 5549.46, 5419.68, 5276.89, 5119.82,
                                 4947.02, 4756.93, 4547.81, 4317.74, 4064.66, 3786.25, 3479.96])
         self.r_earth = 6371.0
+<<<<<<< HEAD:csemlib/src/s20rts_f2py.py
+        self.wasread = False
+=======
         self.wasread=False
 
+>>>>>>> master:csemlib/models/S20RTS/s20rts_f2py.py
 
     def read(self):
         pass
@@ -35,6 +39,10 @@ class S20rts_f2py(Model):
     def write(self):
         pass
 
+<<<<<<< HEAD:csemlib/src/s20rts_f2py.py
+    def eval(self):
+        pass
+=======
     def eval(self, c, l, rad):
 
         lat = 90.0 - np.degrees(c)
@@ -47,6 +55,7 @@ class S20rts_f2py(Model):
         self.wasread=True
         return dv
 
+>>>>>>> master:csemlib/models/S20RTS/s20rts_f2py.py
 
     def split_domains_griddata(self, GridData):
         """
@@ -76,16 +85,25 @@ class S20rts_f2py(Model):
         if len(s20rts_dmn) < 1:
             return GridData
 
+<<<<<<< HEAD:csemlib/src/s20rts_f2py.py
+=======
         #- Set colatitude, longitude and depth arrays within truncated domain.
+>>>>>>> master:csemlib/models/S20RTS/s20rts_f2py.py
         lat = 90.0 - np.degrees(s20rts_dmn.df['c'])
         lon = np.degrees(s20rts_dmn.df['l']) - 360.0
         dep = self.r_earth - s20rts_dmn.df['r']
         dv = np.zeros(len(lat))
 
+<<<<<<< HEAD:csemlib/src/s20rts_f2py.py
+        # Get velocity perturbation
+        dv = s20eval.sph2v(lat, lon, dep, dv, mfl, self.wasread)
+        self.wasread = False
+=======
         #- Get velocity perturbations.
         dv = s20eval.sph2v(lat, lon, dep, dv, mfl, self.wasread)
         self.wasread=True
 
+>>>>>>> master:csemlib/models/S20RTS/s20rts_f2py.py
         # Compute vp perturbations
         R0 = 1.25
         R2891 = 3.0

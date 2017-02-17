@@ -10,12 +10,9 @@ import csemlib.background.skeleton as skl
 import csemlib.models.crust as crust
 import csemlib.models.one_dimensional as m1d
 import csemlib.models.s20rts as s20
-import csemlib.models.ses3d as s3d
-from csemlib.background.fibonacci_grid import FibonacciGrid
-from csemlib.background.grid_data import GridData
 from csemlib.models.model import triangulate, write_vtk
 from csemlib.models.topography import Topography
-from csemlib.utils import cart2sph, sph2cart
+from csemlib.utils import cart2sph
 import boltons.fileutils
 
 TEST_DATA_DIR = os.path.join(os.path.split(__file__)[0], 'test_data')
@@ -35,6 +32,16 @@ def test_fibonacci_sphere():
     np.testing.assert_almost_equal(points[0], true_x, decimal=DECIMAL_CLOSE)
     np.testing.assert_almost_equal(points[1], true_y, decimal=DECIMAL_CLOSE)
     np.testing.assert_almost_equal(points[2], true_z, decimal=DECIMAL_CLOSE)
+
+def test_fibonacci_plane():
+    true_x = np.array([0., 0.21360879, -0.44550123, 0.43467303, -0.11016234, -0.37952405, 0.74803968,
+                       -0.74249263, 0.30682308, 0.36197619])
+    true_y = np.array([0., -0.23317651, 0.03909797, 0.33325569, -0.62278749, 0.59662509, -0.20108863,
+                       -0.38562248, 0.84015451, -0.87691119])
+
+    points = skl.fib_plane(10)
+    np.testing.assert_almost_equal(points[0], true_x, decimal=DECIMAL_CLOSE)
+    np.testing.assert_almost_equal(points[1], true_y, decimal=DECIMAL_CLOSE)
 
 
 def test_crust():
@@ -116,41 +123,40 @@ def test_s20rts():
     :return:
     """
 
-    true = np.array([
-        [-1.01877232e-02, -1.01877232e-02, -1.01877232e-02, -1.01877232e-02, -1.01877232e-02,
-         -1.01877232e-02, -1.01877232e-02, -1.01877232e-02, -1.01877232e-02, -1.01877232e-02],
-        [-1.44056273e-02, 2.96664697e-02, 2.92642415e-02, 1.61460041e-02, -1.57275509e-02,
-         7.13132098e-03, 2.90914878e-02, 2.99952254e-02, 5.79711610e-03, -1.44056273e-02],
-        [3.37437506e-02, 2.04684792e-02, -1.24400607e-02, 2.72054351e-03, 8.33735766e-03,
-         1.18519683e-02, 5.28123669e-03, 2.79334604e-02, 1.14312565e-02, 3.37437506e-02],
-        [1.88464920e-02, -2.84314823e-03, 9.61633282e-03, 3.41507489e-02, 2.75727421e-02,
-         1.68134034e-02, -1.60801974e-02, 3.64814426e-02, -4.61877955e-03, 1.88464920e-02],
-        [3.49627974e-02, -2.25299414e-02, 5.38457115e-03, -1.28656351e-02, 2.23747856e-02,
-         1.37116499e-02, -1.02294856e-02, -9.12301242e-03, 4.90924855e-03, 3.49627974e-02],
-        [1.52122538e-02, 1.95654151e-02, -1.82730716e-03, 1.83242680e-03, -3.33209386e-02,
-         2.42266632e-02, -2.14003047e-02, 4.65260346e-03, 3.98520761e-02, 1.52122538e-02],
-        [1.77482107e-03, 1.45018273e-02, -2.46039369e-02, 3.74249736e-02, -6.59335407e-03,
-         1.66440321e-02, -2.50129693e-02, -1.12087136e-02, 2.13203960e-02, 1.77482107e-03],
-        [-1.76785861e-02, -4.01646331e-04, -2.15678403e-02, -2.20824982e-02, -1.08647419e-02,
-         -2.65258612e-03, -3.65854079e-02, -1.95070464e-03, 1.47419745e-02, -1.76785861e-02],
-        [1.03761537e-02, 1.48621690e-02, 1.61364041e-02, 2.67424633e-02, -1.33043420e-02,
-         -2.34031725e-02, 5.95206701e-04, -4.95703024e-03, -9.53130089e-05, 1.03761537e-02],
-        [5.83822775e-03, 5.83822775e-03, 5.83822775e-03, 5.83822775e-03, 5.83822775e-03,
-         5.83822775e-03, 5.83822775e-03, 5.83822775e-03, 5.83822775e-03, 5.83822775e-03]])
+    true = np.array([-0.01322954, -0.00347698,  0.00816347,  0.02046614,  0.02683848,
+                     -0.00343986, -0.01152393, -0.01071749,  0.01334541,  0.01193581,
+                     -0.01322954,  0.04389081,  0.04001087,  0.00036642, -0.02461444,
+                     0.00270064,  0.00245818, -0.011406,  0.00755754,  0.01193708,
+                     -0.01322954,  0.02528974,  0.02795101,  0.03040496, -0.00620491,
+                     -0.01366555, -0.0165236, -0.0185142 ,  0.00993133,  0.011935,
+                     -0.01322954,  0.0314661,  0.00938958,  0.00566042,  0.00808682,
+                     0.01278651,  0.02467417, -0.00284243,  0.01496288,  0.01193301,
+                     -0.01322954,  0.00321608,  0.0011454 , -0.00482245, -0.00309979,
+                     -0.00798616, -0.02092096, -0.02821881, -0.0042038 ,  0.01193439,
+                     -0.01322954,  0.00637217, -0.00427041, -0.0196469 , -0.02052032,
+                     -0.02033845, -0.00154149, -0.01177908, -0.02167864,  0.01193683,
+                     -0.01322954,  0.027213,  0.00939572, -0.0225926 , -0.01075957,
+                     -0.01903457, -0.01392874, -0.01559766, -0.0103415 ,  0.01193628,
+                     -0.01322954,  0.02329051,  0.03291302,  0.01023119,  0.00480987,
+                     0.00873816, -0.00828948, -0.0032955 , -0.00431307,  0.01193364,
+                     -0.01322954,  0.01203387, -0.00319457, -0.01521767, -0.00078595,
+                     0.02169883,  0.00201059, -0.00751255,  0.00561583,  0.01193328,
+                     -0.01322954, -0.00347699,  0.00816347,  0.02046615,  0.02683855,
+                     -0.00343987, -0.01152392, -0.01071749,  0.01334541,  0.01193581])
 
     mod = s20.S20rts()
-    mod.read()
 
     size = 10
     col = np.linspace(0, np.pi, size)
     lon = np.linspace(0, 2 * np.pi, size)
     cols, lons = np.meshgrid(col, lon)
-    rad = mod.layers[0]
+    cols = cols.flatten()
+    lons = lons.flatten()
+    rad = np.ones_like(cols) * mod.layers[3]
 
-    vals = mod.eval(cols, lons, rad).reshape(size, size).T
-    dat = xarray.DataArray(vals, dims=['lat', 'lon'], coords=[90 - np.degrees(col), np.degrees(lon)])
-    np.testing.assert_almost_equal(dat.values, true, decimal=DECIMAL_CLOSE)
+    vals = mod.eval(cols, lons, rad)
 
+    np.testing.assert_almost_equal(vals, true, decimal=DECIMAL_CLOSE)
 
 def test_s20rts_vtk_single_sphere():
     """
@@ -164,26 +170,13 @@ def test_s20rts_vtk_single_sphere():
     rad = s20mod.layers[0]
     rel_rad = rad/ s20mod.r_earth
     x, y, z = skl.fibonacci_sphere(500)
-    c, l, _ = cart2sph(x, y, z)
-    vals = s20mod.eval(c, l, rad)
+    c, l, r = cart2sph(x, y, z)
+    vals = s20mod.eval(c, l, r)
 
     elements = triangulate(x,y,z)
 
     pts = np.array((x, y, z)).T * rel_rad
     write_vtk(os.path.join(VTK_DIR, 'test_s20rts.vtk'), pts, elements, vals, 'vs')
-
-
-def test_s20rts_out_of_bounds():
-    mod = s20.S20rts()
-
-    with pytest.raises(ValueError):
-        mod.find_layer_idx(3200)
-
-    with pytest.raises(ValueError):
-        mod.find_layer_idx(6204)
-
-    with pytest.raises(ValueError):
-        mod.eval(0, 0, 7000)
 
 
 def test_topo():

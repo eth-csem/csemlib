@@ -7,6 +7,9 @@ __pycache__/
 *.so
 csemlib/models/S20RTS/s20evalmodule.c
 
+# Mac
+*.DS_Store
+
 # Distribution / packaging
 .Python
 env/

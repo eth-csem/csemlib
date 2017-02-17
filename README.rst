@@ -9,7 +9,7 @@ Python package that enables extracting the CSEM
 -----------------------------------------------
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Installation on Linux and MAC OS X
+Installation on Linux and Mac OS X
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 * Install the latest version of `Anaconda <https://www.continuum.io/downloads>`_ for Python 3.x
 * Clone this repository by typing the following commands to the terminal::

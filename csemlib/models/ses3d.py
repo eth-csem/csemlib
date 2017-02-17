@@ -26,17 +26,12 @@ class Ses3d(Model):
     Class handling file-IO for a model in SES3D format.
     """
 
-    def __init__(self, name, directory, components=[], doi=None):
+    def __init__(self, directory, components):
         super(Ses3d, self).__init__()
         self.rot_mat = None
         self._disc = []
         self._data = []
         self.directory = directory
-        self.components = components
-        if doi:
-            self.doi = doi
-        else:
-            self.doi = 'None'
 
         with io.open(os.path.join(self.directory, 'modelinfo.yml'), 'rt') as fh:
             try:
@@ -44,6 +39,7 @@ class Ses3d(Model):
             except yaml.YAMLError as exc:
                 print(exc)
 
+        self.components = list(set(self.model_info['components']).intersection(components))
         self.geometry = self.model_info['geometry']
         self.rot_vec = np.array([self.geometry['rot_x'], self.geometry['rot_y'], self.geometry['rot_z']])
         self.rot_angle = self.geometry['rot_angle']
@@ -134,7 +130,6 @@ class Ses3d(Model):
             self._data[i].attrs['solver'] = 'ses3d'
             self._data[i].attrs['coordinate_system'] = 'spherical'
             self._data[i].attrs['date'] = datetime.datetime.now().__str__()
-            self._data[i].attrs['doi'] = self.doi
 
     def write(self, directory):
 
@@ -212,10 +207,11 @@ class Ses3d(Model):
 
     def eval_point_cloud_griddata(self, GridData):
         # Read model
+        self.components = list(set(self.model_info['components']).intersection(GridData.components))
         if self.model_info['taper']:
-            self.components = ['taper'] + GridData.components
-        else:
-            self.components = GridData.components
+            self.components = ['taper'] + self.components
+
+
         self.read()
         # Get dmn
         for region in range(self.model_info['region_info']['num_regions']):
@@ -284,8 +280,10 @@ class Ses3d(Model):
         top = 'region_{}_top'.format(region)
 
         if region == 0:
+            # The upper tolerance is there to make sure no points are missed near Earth's surface
+            upper_tolerance = 0.1
             ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['r'] >= region_info[bottom]]
-            ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['r'] <= region_info[top]]
+            ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['r'] <= region_info[top] + upper_tolerance]
 
         else:
             ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['r'] >= region_info[bottom]]
@@ -299,7 +297,8 @@ class Ses3d(Model):
         return ses3d_dmn
 
     def write_to_hdf5(self, filename=None):
-        filename= filename or os.path.join(self.directory, "{}.hdf5".format(self.model_info['model']))
+        self.read()
+        filename = filename or os.path.join(self.directory, "{}.hdf5".format(self.model_info['model']))
         f = h5py.File(filename, "w")
 
         parameters = ['x', 'y', 'z'] + self.model_info['components']

@@ -18,6 +18,10 @@ region_info:
   region_0_top: 6300.0
   region_0_bottom: 6100.0
 components:
+  - rho
+  - vph
+  - vpv
+  - vsh
   - vsv
 model: test_region
 # Taper should in fact be set to True for Japan, but for testing purposes t is set to False
