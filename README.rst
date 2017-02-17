@@ -47,7 +47,7 @@ The code block below shows an example where S20RTS and a crustal model are added
    from csemlib.background.grid_data import GridData
    from csemlib.models.crust import Crust
    from csemlib.models.model import triangulate, write_vtk
-   from csemlib.models.S20RTS.s20rts_f2py import S20rts_f2py
+   from csemlib.models.s20rts import S20rts
    
    # Generate Grid
    rad = 6250.0
@@ -59,10 +59,9 @@ The code block below shows an example where S20RTS and a crustal model are added
    
    # Add 1d background model and initalize a 'vsv' array with values
    grid_data.add_one_d()
-   grid_data.set_component('vsv', grid_data.df['one_d_vsv'])
    
    # Evaluate S20RTS
-   s20 = S20rts_f2py()
+   s20 = S20rts()
    s20.eval_point_cloud_griddata(grid_data)
    
    # Evaluate Crust

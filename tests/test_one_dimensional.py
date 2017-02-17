@@ -4,7 +4,7 @@ import numpy as np
 import csemlib.models.one_dimensional as m1d
 DECIMAL_CLOSE = 3
 
-def test_prem_no220():
+def test_csem_1d_background():
     """
     Test to (mainly) make sure that discontinuities are handled properly.
     :return:
@@ -56,3 +56,41 @@ def test_prem_no220():
         m1d.csem_1d_background(6371, 'uppermantle')
     with pytest.raises(ValueError):
         m1d.csem_1d_background(5971, 'lower_mantle')
+
+def test_csem_1d_background_no_regions():
+    """
+    Test to make sure that the one dimensional model without region check is handled properly.
+    :return:
+    """
+    reg01 = np.array([3.374814283471982, 8.076866567257888, 8.076866567257888, 4.4708837074242656, 4.581983707424266,
+                      0.0, 86.5042159786517, 57823.0])
+    reg02 = np.array([3.363837607910846, 8.014433950714174, 8.014433950714174, 4.433659080207189, 4.433659080207189,
+                      0.0, 143.00006327064492, 57823.0])
+    reg03 = np.array([3.495466943964841, 8.751316606498193, 8.751316606498193, 4.7139374352534915, 4.7139374352534915,
+                      0.0, 143.0, 57823.0])
+    reg04 = np.array([3.5432636006906293, 8.905243242819024, 8.905243242819024, 4.7699,
+                      4.7699, 0.0, 143.0, 57823.0])
+    reg05 = np.array([3.9758203735677293, 10.157825003924035, 10.157825003924035, 5.5159311881965145,
+                      5.5159311881965145, 0.0, 143.0, 57823.0])
+    reg06 = np.array([3.9921213467273584, 10.266174462407786, 10.266174462407786, 5.570211034374509, 5.570211034374509,
+                      0.0, 143.0, 57823.0])
+    reg07 = np.array([4.443204194391242, 11.06568986974271, 11.06568986974271, 6.240535840301453, 6.240535840301453,
+                      0.0, 312.0, 57823.0])
+    reg08 = np.array([5.491476554415982, 13.680424477483925, 13.680424477483925, 7.2659252231153015, 7.2659252231153015,
+                      0.0, 312.0, 57823.0])
+    reg09 = np.array([5.566455445926154, 13.716622269026377, 13.716622269026377, 7.26465059504689, 7.26465059504689,
+                      0.0, 312.0, 57823.0])
+    reg10 = np.array([12.166331854652926, 10.35571579802768, 10.35571579802768, 0.0, 0.0, 0.0, 0.0, 57823.0])
+    reg11 = np.array([13.0885, 11.2622, 11.2622, 3.6678, 3.6678, 0.0, 84.6, 1327.7])
+
+    np.testing.assert_almost_equal(m1d.csem_1d_background_no_regions(6292), reg01, decimal=DECIMAL_CLOSE)
+    np.testing.assert_almost_equal(m1d.csem_1d_background_no_regions(6191), reg02, decimal=DECIMAL_CLOSE)
+    np.testing.assert_almost_equal(m1d.csem_1d_background_no_regions(6051), reg03, decimal=DECIMAL_CLOSE)
+    np.testing.assert_almost_equal(m1d.csem_1d_background_no_regions(5971), reg04, decimal=DECIMAL_CLOSE)
+    np.testing.assert_almost_equal(m1d.csem_1d_background_no_regions(5771), reg05, decimal=DECIMAL_CLOSE)
+    np.testing.assert_almost_equal(m1d.csem_1d_background_no_regions(5701), reg06, decimal=DECIMAL_CLOSE)
+    np.testing.assert_almost_equal(m1d.csem_1d_background_no_regions(5600), reg07, decimal=DECIMAL_CLOSE)
+    np.testing.assert_almost_equal(m1d.csem_1d_background_no_regions(3630), reg08, decimal=DECIMAL_CLOSE)
+    np.testing.assert_almost_equal(m1d.csem_1d_background_no_regions(3480), reg09, decimal=DECIMAL_CLOSE)
+    np.testing.assert_almost_equal(m1d.csem_1d_background_no_regions(1221.5), reg10, decimal=DECIMAL_CLOSE)
+    np.testing.assert_almost_equal(m1d.csem_1d_background_no_regions(0.0), reg11, decimal=DECIMAL_CLOSE)
