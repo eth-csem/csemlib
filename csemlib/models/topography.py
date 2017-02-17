@@ -24,34 +24,24 @@ class Topography(Model):
         pass
 
     def read(self):
+        # Read txt file
+        #val = np.genfromtxt(os.path.join(self.directory, 'topo_resampled_1hour.txt'))
 
-        # initial_reading = False
-        # if initial_reading:
-        #     # Initial Reading
-        #     vals = np.genfromtxt(os.path.join(self.directory, '10MinuteTopoGrid.txt'), delimiter=',')
-        #     _, _, topo = vals.T
-        #
-        #     initial_lon = np.linspace(-180, 180, 360 * 6 + 1)
-        #     initial_col = np.linspace(-90, 90, 180 * 6 + 1)
-        #
-        #     topo = np.array(topo)
-        #     topo_reshaped = topo.reshape(len(initial_col), len(initial_lon))
-        #
-        #     # Resample such that there are no points at the poles
-        #     topo_resampled = topo_reshaped[1::2, 1::2]
-        #     topo_1d = topo_resampled.reshape(np.size(topo_resampled))
-        #     np.savetxt(os.path.join(self.directory, 'topo_resampled.txt'), topo_1d, fmt='%.0f')
-        # val = np.genfromtxt(os.path.join(self.directory, 'topo_resampled.txt'))
+        # write hdf5
+        # filename = os.path.join(self.directory, 'topo_resampled_1hour.hdf5')
+        # f = h5py.File(filename, "w")
+        # f.create_dataset('topo_resampled', data=val, dtype='f')
+        # f.close()
 
-        # Read values
-        filename = os.path.join(self.directory, 'topo_resampled.hdf5')
+        # Read values hdf5
+        filename = os.path.join(self.directory, 'topo_resampled_1hour.hdf5')
         f = h5py.File(filename, "r")
         val = f['topo_resampled'][:]
 
-        # new sampling:
-        start = 1.0/6.0
-        col = np.linspace(start, 180 - start, 540)
-        lon = np.linspace(start, 360 - start, 1080)
+        # sampling:
+        start = 1
+        col = np.linspace(start, 180-start, 179)
+        lon = np.linspace(start, 360-start, 359)
         # Reshape
         val = val.reshape(len(col), len(lon))
 
@@ -72,17 +62,19 @@ class Topography(Model):
     def write(self):
         pass
 
-    def eval(self, x, y, z=0, param=None, topo_smooth_factor=0):
-
-        # This is a heuristic.
-        #topo_smooth_factor = 1e2
-
-        # Create smoother object.
+    def eval(self, c, l, topo_smooth_factor=0):
+        """
+        :param c: colatitude in radians
+        :param l: longitude in radians
+        :param topo_smooth_factor:
+        :return: topography at colat, lon
+        """
+        # Fit a spline through the topography grid
         lut = interp.RectSphereBivariateSpline(self._data.coords['col'],
                                                self._data.coords['lon'],
-                                               self._data[param],
+                                               self._data['topo'],
                                                s=topo_smooth_factor, pole_values=[-4.228, -0.056])
 
         # Convert to coordinate system used for topography 0-2pi instead of -pi-pi
-        y = y + np.pi
-        return lut.ev(x, y)
+        l = l + np.pi
+        return lut.ev(c, l)
