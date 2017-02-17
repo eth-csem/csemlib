@@ -26,6 +26,8 @@ class S20rts_f2py(Model):
                                 5872.18, 5774.69, 5667.44, 5549.46, 5419.68, 5276.89, 5119.82,
                                 4947.02, 4756.93, 4547.81, 4317.74, 4064.66, 3786.25, 3479.96])
         self.r_earth = 6371.0
+        self.wasread=False
+
 
     def read(self):
         pass
@@ -38,11 +40,11 @@ class S20rts_f2py(Model):
         lat = 90.0 - np.degrees(c)
         lon = np.degrees(l) - 360.0
         dep = self.r_earth - rad
-        wasread = False
         dv = np.zeros(len(lat))
 
         # get velocity perturbation
-        dv = s20eval.sph2v(lat, lon, dep, dv, mfl, wasread)
+        dv = s20eval.sph2v(lat, lon, dep, dv, mfl, self.wasread)
+        self.wasread=True
         return dv
 
 
@@ -71,14 +73,18 @@ class S20rts_f2py(Model):
         self.read()
         s20rts_dmn = self.split_domains_griddata(GridData)
 
+        if len(s20rts_dmn) < 1:
+            return GridData
+
+        #- Set colatitude, longitude and depth arrays within truncated domain.
         lat = 90.0 - np.degrees(s20rts_dmn.df['c'])
         lon = np.degrees(s20rts_dmn.df['l']) - 360.0
         dep = self.r_earth - s20rts_dmn.df['r']
-        wasread = False
         dv = np.zeros(len(lat))
 
-        # Get velocity perturbation
-        dv = s20eval.sph2v(lat, lon, dep, dv, mfl, wasread)
+        #- Get velocity perturbations.
+        dv = s20eval.sph2v(lat, lon, dep, dv, mfl, self.wasread)
+        self.wasread=True
 
         # Compute vp perturbations
         R0 = 1.25

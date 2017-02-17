@@ -68,7 +68,7 @@ def triangulate(x, y, z, true_x=None, true_y=None, true_z=None):
     :returns: A list-of-lists containing connectivity of the resulting mesh.
     """
 
-    print("COMPUTING DELAUNY TRIANGULATION")
+    print("COMPUTING DELAUNEY TRIANGULATION")
     # Set up the simplex vertices.
     pts = np.array((x, y, z)).T
 
