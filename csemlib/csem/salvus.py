@@ -62,6 +62,7 @@ def add_csem_discontinuous(salvus_mesh, **kwargs):
     regions = one_dimensional.get_region(rad_c)
 
     for i in np.arange(salvus_mesh.nodes_per_element):
+        print('Adding CSEM to node {} out of {}'.format(i+1, salvus_mesh.nodes_per_element))
         if salvus_mesh.ndim == 2:
             x, y = salvus_mesh.points[salvus_mesh.connectivity[:, i]].T * 6371.0 / salvus_mesh.scale
             z = np.zeros_like(x)
