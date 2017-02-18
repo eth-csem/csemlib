@@ -9,7 +9,7 @@ from ..models.ses3d_rbf import Ses3d_rbf
 
 def _evaluate_csem_salvus(x, y, z, regions, **kwargs):
     # Default parameters
-    params = dict(eval_crust=False, eval_s20=False, eval_regional=False, eval_japan=False)
+    params = dict(eval_crust=False, eval_s20=False)
     params.update(kwargs)
 
     grid_data = GridData(x, y, z, solver='salvus')
@@ -20,34 +20,34 @@ def _evaluate_csem_salvus(x, y, z, regions, **kwargs):
         s20 = S20rts()
         s20.eval_point_cloud_griddata(grid_data)
 
-    if params['eval_japan']:
-        mod = Ses3d_rbf('/home/sed/CSEM/csemlib/ses3d_models/japan', grid_data.components)
-        mod.eval_point_cloud_griddata(grid_data)
+    # if params['eval_japan']:
+    #     mod = Ses3d_rbf('/home/sed/CSEM/csemlib/ses3d_models/japan', grid_data.components)
+    #     mod.eval_point_cloud_griddata(grid_data)
 
-    # Evaluate regional ses3d models. Requires models to be present still hardcoded replace this with smtng better
-    if params['eval_regional']:
-        mod = Ses3d_rbf('/home/sed/CSEM/csemlib/ses3d_models/Australia', grid_data.components)
-        mod.eval_point_cloud_griddata(grid_data)
-
-        mod = Ses3d_rbf('/home/sed/CSEM/csemlib/ses3d_models/south_atlantic', grid_data.components)
-        mod.eval_point_cloud_griddata(grid_data)
+    # # Evaluate regional ses3d models. Requires models to be present still hardcoded replace this with smtng better
+    # if params['eval_regional']:
+    #     mod = Ses3d_rbf('/home/sed/CSEM/csemlib/ses3d_models/Australia', grid_data.components)
+    #     mod.eval_point_cloud_griddata(grid_data)
+    #
+    #     mod = Ses3d_rbf('/home/sed/CSEM/csemlib/ses3d_models/south_atlantic', grid_data.components)
+    #     mod.eval_point_cloud_griddata(grid_data)
 
     # Add crust
     if params['eval_crust']:
         cst = Crust()
         cst.eval_point_cloud_grid_data(grid_data)
 
-    # Add europe model on top of crust
-    if params['eval_regional']:
-        mod = Ses3d_rbf('/home/sed/CSEM/csemlib/ses3d_models/europe_1s', grid_data.components)
-        mod.eval_point_cloud_griddata(grid_data)
+    # # Add europe model on top of crust
+    # if params['eval_regional']:
+    #     mod = Ses3d_rbf('/home/sed/CSEM/csemlib/ses3d_models/europe_1s', grid_data.components)
+    #     mod.eval_point_cloud_griddata(grid_data)
 
     return grid_data
 
 
-def add_csem_to_salvus_mesh_respect_disontinuities(salvus_mesh, **kwargs):
+def add_csem_discontinuous(salvus_mesh, **kwargs):
     # Default parameters
-    params = dict(eval_crust=False, eval_s20=False, eval_regional=False)
+    params = dict(eval_crust=False, eval_s20=False)
     params.update(kwargs)
 
     # Get element centroids
@@ -80,9 +80,9 @@ def add_csem_to_salvus_mesh_respect_disontinuities(salvus_mesh, **kwargs):
     return salvus_mesh
 
 
-def add_csem_to_salvus_mesh_continuous(salvus_mesh, **kwargs):
+def add_csem_continuous(salvus_mesh, **kwargs):
     # Default parameters
-    params = dict(eval_crust=False, eval_s20=False, eval_regional=False)
+    params = dict(eval_crust=False, eval_s20=False)
     params.update(kwargs)
 
     # 2D case

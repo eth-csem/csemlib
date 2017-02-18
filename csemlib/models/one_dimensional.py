@@ -1,7 +1,7 @@
 import numpy as np
 
 CSEM_DISCONTINUITIES = np.array([0.0, 1221.5, 3480.0, 3630.0, 5600.0, 5701.0,
-                                5771.0, 5971.0, 6051.0, 6191.0, 6291.0, 6371.0])
+                                5771.0, 5971.0, 6051.0, 6191.0, 6291.0, 6371.0]) / 6371.0
 
 def csem_1d_background(rad, region=None):
     regions = {'upper_mantle', 'transition_zone', 'lower_mantle', 'outer_core', 'inner_core'}
