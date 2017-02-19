@@ -30,6 +30,7 @@ var/
 
 # VTKs
 *.vtk
+tests/vtk/
 
 # Exodus files
 *.e
