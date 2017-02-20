@@ -5,7 +5,7 @@ import pyximport
 
 pyximport.install(setup_args={"include_dirs": np.get_include()})
 
-from . import enclosing_elements
+import enclosing_elements
 from meshpy.tet import build, Options, MeshInfo
 from numba import jit
 from scipy.spatial.ckdtree import cKDTree
