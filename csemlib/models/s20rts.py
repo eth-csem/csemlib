@@ -86,7 +86,6 @@ class S20rts(object):
 
         # March through all input coordinates.
         dv_out = np.zeros(len(colat))
-        error=0.0
 
         for i in range(len(colat)):
 
@@ -179,8 +178,8 @@ class S20rts(object):
             return GridData
 
         # Get velocity perturbation
-        #dv = self.eval_gridded(s20rts_dmn.df['c'], s20rts_dmn.df['l'], s20rts_dmn.df['r'])
-        dv = self.eval(s20rts_dmn.df['c'], s20rts_dmn.df['l'], s20rts_dmn.df['r'])
+        dv = self.eval_gridded(s20rts_dmn.df['c'], s20rts_dmn.df['l'], s20rts_dmn.df['r'])
+        #dv = self.eval(s20rts_dmn.df['c'], s20rts_dmn.df['l'], s20rts_dmn.df['r'])
 
         # Compute vp perturbations
         R0 = 1.25
