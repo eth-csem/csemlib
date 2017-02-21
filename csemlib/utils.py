@@ -1,6 +1,14 @@
 import numpy as np
 
 
+def lagrange(x,x0,x1,x2):
+    """
+    Degree-3 Lagrange polynomial as function of x, with l(x0)=1, l(x1)=l(x2)=0.
+    """
+
+    return ((x-x1)/(x0-x1))*((x-x2)/(x0-x2))
+
+
 def sph2cart(col, lon, rad):
     """
     Given spherical coordinates as input, returns their cartesian equivalent.

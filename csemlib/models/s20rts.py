@@ -1,21 +1,22 @@
 import os
 import numpy as np
-
-from model import Model
+from csemlib.utils import lagrange as L
 from ..lib import s20eval
 
 
-class S20rts(Model):
+class S20rts(object):
     """
     Class handling S20rts evaluations.
     """
 
-    def data(self):
-        pass
-
-
     def __init__(self):
+        """
+        Initialise S20RTS evaluations. This includes setting up info for the evaluation of spherical harmonics
+        (the original S20RTS), and the gridded version of S20RTS (made for better scaling).
+        """
         super(S20rts, self).__init__()
+
+        # Basic info for the original S20RTS (spherical harmonics).
         directory, _ = os.path.split(os.path.split(__file__)[0])
         self.directory = os.path.join(directory, 'data', 's20rts')
         self.mfl = os.path.join(self.directory, 'S20RTS.sph')
@@ -25,13 +26,16 @@ class S20rts(Model):
         self.r_earth = 6371.0
         self.wasread = False
 
+        # Read gridded S20RTS file.
+        fid = open('csemlib/data/s20rts/s20rts_gridded.dat', 'r')
+        v_dummy = np.zeros(1898611)
+        i = 0
+        for f in fid:
+            v_dummy[i] = float(f.split(' ')[3])
+            i += 1
+        fid.close()
 
-    def read(self):
-        pass
-
-
-    def write(self):
-        pass
+        self.dv=np.reshape(v_dummy,(187,71,143))
 
 
     def eval(self, colats, lons, rads):
@@ -73,53 +77,84 @@ class S20rts(Model):
             lon[i]+=2.0*np.pi
 
         # Set coordinate axes.
-        d_deg = 5.0 * np.pi / 180.0
-        colats = np.arange(d_deg, np.pi, d_deg)
-        lons = np.arange(d_deg, 2.0 * np.pi, d_deg)
-        rads = np.arange(3480.0, 6371.0, 20.0)
-
-        # Read gridded S20RTS file.
-        fid=open('csemlib/data/s20rts/s20rts_gridded.dat','r')
-        dv=np.zeros(360325)
-        #c=np.zeros(360325)
-        #l=np.zeros(360325)
-        #r=np.zeros(360325)
-        i=0
-        for f in fid:
-            #r[i]=float(f.split(' ')[0])
-            #c[i]=float(f.split(' ')[1])
-            #l[i]=float(f.split(' ')[2])
-            dv[i]=float(f.split(' ')[3])
-            i+=1
-        fid.close()
+        d_deg = 2.5 * np.pi / 180.0
+        c = np.arange(d_deg, np.pi, d_deg)
+        l = np.arange(d_deg, 2.0 * np.pi, d_deg)
+        r_1 = np.arange(3480.0, 5480.0, 20.0)
+        r_2 = np.arange(5480.0, 6350.0, 10.0)
+        r = np.concatenate((r_1, r_2))
 
         # March through all input coordinates.
-        dv_out=np.zeros(len(colat))
+        dv_out = np.zeros(len(colat))
+        error=0.0
+
         for i in range(len(colat)):
 
+            colat_i=colat[i]
+            lon_i=lon[i]
+            rad_i=rad[i]
+
             # Get individual indeces of the coordinates in the grid file.
-            idx_colat=min(np.where(np.min(np.abs(colat[i]-colats))==np.abs(colat[i]-colats))[0])
-            idx_lon=min(np.where(np.min(np.abs(lon[i]-lons))==np.abs(lon[i]-lons))[0])
-            idx_rad=min(np.where(np.min(np.abs(rad[i]-rads))==np.abs(rad[i]-rads))[0])
+            if ((i==0) or (colat_i!=colat[i-1])):
+                ic=min(np.where(np.min(np.abs(colat_i-c))==np.abs(colat_i-c))[0])
+            if ((i==0) or (lon_i!=lon[i-1])):
+                il=min(np.where(np.min(np.abs(lon_i-l))==np.abs(lon_i-l))[0])
+            if ((i==0) or (rad_i!=rad[i-1])):
+                ir=min(np.where(np.min(np.abs(rad_i-r))==np.abs(rad_i-r))[0])
 
-            # Total index.
-            idx=idx_rad*(len(colats)*len(lons))+idx_colat*len(lons)+idx_lon
-            dv_out[i]=dv[idx]
+            # Indeces of depth layers above and below.
+            if (r[ir]>rad_i):
+                irm=ir
+                irp=ir+1
+            else:
+                irm=ir-1
+                irp=ir
 
-            # Debugging stuff.
-            #dv_truth=self.eval(np.array([colat[i]]), np.array([lon[i]]), np.array([rad[i]]))
-            #print r[idx], c[idx], l[idx], dv[idx]
-            #print rad[i], colat[i], lon[i], dv_truth[0]
-            #print '--------------------------------\n'
+            # Weights for linear depth interpolation.
+            m=(rad_i-r[irp])/(r[irm]-r[irp])
+            p=(rad_i-r[irm])/(r[irp]-r[irm])
+
+            # Quadratic interpolation in latitude and longitude, except at the poles.
+            if (ic>0 and ic<70):
+                # Handle the crossing of the longitude dateline.
+                if (il==0):
+                    ilm=142
+                else:
+                    ilm=il-1
+                if (il==142):
+                    ilp=0
+                else:
+                    ilp=il+1
+
+                # Precompute terms for Lagrange interpolation.
+                if ((i==0) or (lon_i!=lon[i-1])):
+                    Ll0mp=L(lon_i,l[il],l[ilm],l[ilp])
+                    Llm0p=L(lon_i,l[ilm],l[il],l[ilp])
+                    Llpm0=L(lon_i,l[ilp],l[ilm],l[il])
+                if ((i==0) or (colat_i!=colat[i-1])):
+                    Lc0mp=L(colat_i,c[ic],c[ic-1],c[ic+1])
+                    Lcm0p=L(colat_i,c[ic-1],c[ic],c[ic+1])
+                    Lcpm0=L(colat_i,c[ic+1],c[ic-1],c[ic])
+
+                # Lagrange interpolation.
+                dv_out[i]=(p*self.dv[irp,ic,il]+m*self.dv[irm,ic,il])*Lc0mp*Ll0mp \
+                +(p*self.dv[irp,ic-1,il]+m*self.dv[irm,ic-1,il])*Lcm0p*Ll0mp \
+                +(p*self.dv[irp,ic+1,il]+m*self.dv[irm,ic+1,il])*Lcpm0*Ll0mp \
+                +(p*self.dv[irp,ic,ilm]+m*self.dv[irm,ic,ilm])*Lc0mp*Llm0p \
+                +(p*self.dv[irp,ic-1,ilm]+m*self.dv[irm,ic-1,ilm])*Lcm0p*Llm0p \
+                +(p*self.dv[irp,ic+1,ilm]+m*self.dv[irp,ic+1,ilm])*Lcpm0*Llm0p \
+                +(p*self.dv[irp,ic,ilp]+m*self.dv[irm,ic,ilp])*Lc0mp*Llpm0 \
+                +(p*self.dv[irp,ic-1,ilp]+m*self.dv[irm,ic-1,ilp])*Lcm0p*Llpm0 \
+                +(p*self.dv[irp,ic+1,ilp]+m*self.dv[irm,ic+1,ilp])*Lcpm0*Llpm0
+            else:
+                dv_out[i] = (p*self.dv[irp, ic, il]+m*self.dv[irm, ic, il])
 
         return dv_out
 
 
     def split_domains_griddata(self, GridData):
         """
-        This returns a new GridData object which only includes the points that lie within the S20RTS domain,
-        i.e. that are above the core-mantle boundary. Points at a depth less than the minimum depth of S20RTS
-        (24.37 km), are set to that minimum depth in self.eval.
+        This returns a new GridData object which only includes the points that lie within the mantle.
         :param GridData:
         :return s20rts_dmn:
         """
@@ -138,14 +173,14 @@ class S20rts(Model):
         :return updates GridData
         """
         print('Evaluating S20RTS')
-        self.read()
         s20rts_dmn = self.split_domains_griddata(GridData)
 
         if len(s20rts_dmn) < 1:
             return GridData
 
         # Get velocity perturbation
-        dv = self.eval_gridded(s20rts_dmn.df['c'], s20rts_dmn.df['l'], s20rts_dmn.df['r'])
+        #dv = self.eval_gridded(s20rts_dmn.df['c'], s20rts_dmn.df['l'], s20rts_dmn.df['r'])
+        dv = self.eval(s20rts_dmn.df['c'], s20rts_dmn.df['l'], s20rts_dmn.df['r'])
 
         # Compute vp perturbations
         R0 = 1.25
