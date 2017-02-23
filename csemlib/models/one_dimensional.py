@@ -272,8 +272,7 @@ def csem_1d_background_eval_point_cloud(rad):
 
 
 def get_region(rad):
-    discontinuities = np.array([1221.5, 3480.0, 3630.0, 5600.0, 5701.0,
-                                5771.0, 5971.0, 6051.0, 6191.0, 6291.0])
+    discontinuities = np.array([1221.5, 3480.0, 3630.0, 5600.0, 5701.0, 5771.0, 5971.0, 6051.0, 6191.0, 6291.0])
     region = np.digitize(rad, discontinuities)
     return region
 

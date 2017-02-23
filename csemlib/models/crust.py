@@ -123,6 +123,8 @@ def add_crust_all_params_topo_griddata_with_taper(cst_zone, crust_dep, crust_vs,
     """
 
     r_earth = 6371.0
+    r_ani = 6191.0
+    s_ani = 0.0011
 
     for i in range(len(cst_zone['r'])):
 
@@ -130,13 +132,14 @@ def add_crust_all_params_topo_griddata_with_taper(cst_zone, crust_dep, crust_vs,
 
         # If above taper overwrite with crust.
         if cst_zone['r'].values[i] > (r_earth - crust_dep[i] + taper_hwidth):
-            # Do something with param here
-            if 'vsv' in cst_zone.columns:
-                cst_zone['vsv'].values[i] = crust_vs[i]
-            if 'vsh' in cst_zone.columns:
-                cst_zone['vsh'].values[i] = crust_vs[i]
 
-            # Continental crust
+            # Ascribe crustal vsh and vsv based on the averaged vs by Meier et al. (2007).
+            if 'vsv' in cst_zone.columns:
+                cst_zone['vsv'].values[i] = crust_vs[i] - 0.5 * s_ani * (cst_zone['r'].values[i] - r_ani)
+            if 'vsh' in cst_zone.columns:
+                cst_zone['vsh'].values[i] = crust_vs[i] + 0.5 * s_ani * (cst_zone['r'].values[i] - r_ani)
+
+            # Scaling to P velocities and density for continental crust.
             if topo[i] >= 0:
                 if 'vpv' in cst_zone.columns:
                     cst_zone['vpv'].values[i] = 1.5399 * crust_vs[i] + 0.840
@@ -147,7 +150,7 @@ def add_crust_all_params_topo_griddata_with_taper(cst_zone, crust_dep, crust_vs,
                 if 'rho' in cst_zone.columns:
                     cst_zone['rho'].values[i] = 0.2277 * crust_vs[i] + 2.016
 
-            # Oceanic crust
+            # Scaling to P velocities and density for oceanic crust.
             if topo[i] < 0:
                 if 'vpv' in cst_zone.columns:
                     cst_zone['vpv'].values[i] = 1.5865 * crust_vs[i] + 0.844
@@ -158,24 +161,26 @@ def add_crust_all_params_topo_griddata_with_taper(cst_zone, crust_dep, crust_vs,
                 if 'rho' in cst_zone.columns:
                     cst_zone['rho'].values[i] = 0.2547 * crust_vs[i] + 1.979
 
-        # If below taper region in mantle, do nothing and continue
+        # If below taper region in mantle, do nothing and continue.
         elif cst_zone['r'].values[i] < (r_earth - crust_dep[i] - taper_hwidth):
             continue
 
-        # In taper region
+        # In taper region, taper linearly to mantle properties.
         else:
             dist_from_mantle = cst_zone['r'].values[i] - (r_earth - crust_dep[i] - taper_hwidth)
             taper_width = 2.0 * taper_hwidth
             frac_crust = dist_from_mantle / taper_width
             frac_mantle = 1.0 - frac_crust
 
-            # Do something with param here
+            # Ascribe crustal vsh and vsv based on the averaged vs by Meier et al. (2007).
             if 'vsv' in cst_zone.columns:
-                cst_zone['vsv'].values[i] = (crust_vs[i] * frac_crust) + (cst_zone['vsv'].values[i] * frac_mantle)
+                vsv_crust = crust_vs[i] - 0.5 * s_ani * (cst_zone['r'].values[i] - r_ani)
+                cst_zone['vsv'].values[i] = (vsv_crust * frac_crust) + (cst_zone['vsv'].values[i] * frac_mantle)
             if 'vsh' in cst_zone.columns:
-                cst_zone['vsh'].values[i] = (crust_vs[i] * frac_crust) + (cst_zone['vsh'].values[i] * frac_mantle)
+                vsh_crust = crust_vs[i] + 0.5 * s_ani * (cst_zone['r'].values[i] - r_ani)
+                cst_zone['vsh'].values[i] = (vsh_crust * frac_crust) + (cst_zone['vsh'].values[i] * frac_mantle)
 
-            # Continental crust
+            # Scaling to P velocities and density for continental crust.
             if topo[i] >= 0:
                 if 'vpv' in cst_zone.columns:
                     cst_zone['vpv'].values[i] = (1.5399 * crust_vs[i] + 0.840) * frac_crust + (cst_zone['vpv'].values[i] * frac_mantle)
@@ -186,7 +191,7 @@ def add_crust_all_params_topo_griddata_with_taper(cst_zone, crust_dep, crust_vs,
                 if 'rho' in cst_zone.columns:
                     cst_zone['rho'].values[i] = (0.2277 * crust_vs[i] + 2.016) * frac_crust + (cst_zone['rho'].values[i] * frac_mantle)
 
-            # Oceanic crust
+            # Scling to P velocity and density for oceanic crust.
             if topo[i] < 0:
                 if 'vpv' in cst_zone.columns:
                     cst_zone['vpv'].values[i] = (1.5865 * crust_vs[i] + 0.844) * frac_crust + (cst_zone['vpv'].values[i] * frac_mantle)
