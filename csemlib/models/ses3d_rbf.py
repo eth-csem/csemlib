@@ -47,6 +47,7 @@ class Ses3d_rbf(Ses3d):
 
         # make a loop here to go through each region one at a time
         for region in range(self.model_info['region_info']['num_regions']):
+
             # Get points that lie within region
             ses3d_dmn = self.extract_ses3d_dmn(GridData, region)
             # if no points in region, continue

@@ -33,22 +33,27 @@ class Ses3d(Model):
         self._data = []
         self.directory = directory
 
+        # Read yaml file containing information on the ses3d submodel.
         with io.open(os.path.join(self.directory, 'modelinfo.yml'), 'rt') as fh:
             try:
                 self.model_info = yaml.load(fh)
             except yaml.YAMLError as exc:
                 print(exc)
 
+        # Assign components (e.g. vs, vp, ...), geometric setup and rotation of the submodel.
         self.components = list(set(self.model_info['components']).intersection(components))
         self.geometry = self.model_info['geometry']
         self.rot_vec = np.array([self.geometry['rot_x'], self.geometry['rot_y'], self.geometry['rot_z']])
         self.rot_angle = self.geometry['rot_angle']
 
+# Not clear yet what that does.
     def data(self, region=0):
         return self._data[region]
 
+
     def read(self):
         files = set(os.listdir(self.directory))
+        print self.directory
         if self.components:
             if not set(self.components).issubset(files):
                 raise IOError(
@@ -246,19 +251,28 @@ class Ses3d(Model):
             GridData.df.update(ses3d_dmn.df)
         return GridData
 
+
     def extract_ses3d_dmn(self, GridData, region=0):
+        """
+        Extract those points from the current collection of grid points that fall inside a ses3d subdomain.
+        :param GridData: GridData structure with collection of current grid points and their properties.
+        :param region: Index of the ses3d subregion, starting with 0.
+        :return: Subset of GridData that falls into that specific ses3d subdomain.
+        """
+
+        # Transscribe geometric info and make deep copy of the current data structure.
         geometry = self.model_info['geometry']
         ses3d_dmn = GridData.copy()
 
-        # Rotate
+        # Rotate all current points into the rotated ses3d coordinate system, in case there is a rotation.
         if geometry['rotation'] is True:
-            ses3d_dmn.rotate(-np.radians(geometry['rot_angle']), geometry['rot_x'],
-                             geometry['rot_y'], geometry['rot_z'])
+            ses3d_dmn.rotate(-np.radians(geometry['rot_angle']), geometry['rot_x'], geometry['rot_y'], geometry['rot_z'])
 
-        # Extract region
+        # Extract points from the current data structure in colatitude direction.
         ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['c'] >= np.deg2rad(geometry['cmin'])]
         ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['c'] <= np.deg2rad(geometry['cmax'])]
 
+        # Extract points from the current data structure in longitude direction.
         l_min = geometry['lmin']
         l_max = geometry['lmax']
 
@@ -269,32 +283,25 @@ class Ses3d(Model):
             l_max -= 360.0
 
         if l_max >= l_min:
-            ses3d_dmn.df = ses3d_dmn.df[(ses3d_dmn.df["l"] >=
-                                        np.deg2rad(l_min)) & (ses3d_dmn.df["l"] <= np.deg2rad(l_max))]
+            ses3d_dmn.df = ses3d_dmn.df[(ses3d_dmn.df["l"] >= np.deg2rad(l_min)) & (ses3d_dmn.df["l"] <= np.deg2rad(l_max))]
         elif l_max < l_min:
-            ses3d_dmn.df = ses3d_dmn.df[(ses3d_dmn.df["l"] <=
-                                        np.deg2rad(l_max)) | (ses3d_dmn.df["l"] >= np.deg2rad(l_min))]
+            ses3d_dmn.df = ses3d_dmn.df[(ses3d_dmn.df["l"] <= np.deg2rad(l_max)) | (ses3d_dmn.df["l"] >= np.deg2rad(l_min))]
 
+        # Extract points from the current data structure in radial direction.
         region_info = self.model_info['region_info']
         bottom = 'region_{}_bottom'.format(region)
         top = 'region_{}_top'.format(region)
 
-        if region == 0:
-            # The upper tolerance is there to make sure no points are missed near Earth's surface
-            upper_tolerance = 0.1
-            ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['r'] >= region_info[bottom]]
-            ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['r'] <= region_info[top] + upper_tolerance]
+        tolerance=0.1   # A small tolerance in km to make sure no points are missed, especially near the Earth's surface.
+        ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['r'] >= region_info[bottom] - tolerance]
+        ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['r'] <= region_info[top] + tolerance]
 
-        else:
-            ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['r'] >= region_info[bottom]]
-            ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['r'] < region_info[top]]
-
-        # Rotate Back
+        # Rotate back to the actual physical domain.
         if geometry['rotation'] is True:
-            ses3d_dmn.rotate(np.radians(geometry['rot_angle']), geometry['rot_x'],
-                             geometry['rot_y'], geometry['rot_z'])
+            ses3d_dmn.rotate(np.radians(geometry['rot_angle']), geometry['rot_x'], geometry['rot_y'], geometry['rot_z'])
 
         return ses3d_dmn
+
 
     def write_to_hdf5(self, filename=None):
         self.read()
