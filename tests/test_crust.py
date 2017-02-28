@@ -26,10 +26,9 @@ def test_crust():
     grid_data.add_one_d()
 
     crust = Crust()
-    crust.read()
-    crust_dep = crust.eval(grid_data.df['c'], grid_data.df['l'], param='crust_dep',
+    crust_dep = crust.interpolate(grid_data.df['c'], grid_data.df['l'], param='crust_dep',
                            smooth_fac=crust.crust_dep_smooth_fac)
-    crust_vs = crust.eval(grid_data.df['c'], grid_data.df['l'], param='crust_vs',
+    crust_vs = crust.interpolate(grid_data.df['c'], grid_data.df['l'], param='crust_vs',
                           smooth_fac=crust.crust_dep_smooth_fac)
 
     #Test if mean crustal depth and velocity remain the same

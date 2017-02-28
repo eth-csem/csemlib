@@ -147,7 +147,7 @@ class Ses3d_rbf(Ses3d):
 
             # No valid component_type.
             else:
-                print 'No valid component_type. Must be perturbation_to_1D, perturbation_to_3D or absolute'
+                print('No valid component_type. Must be perturbation_to_1D, perturbation_to_3D or absolute')
 
         # Update that master GridData structure.
         GridData.df.update(ses3d_dmn.df)

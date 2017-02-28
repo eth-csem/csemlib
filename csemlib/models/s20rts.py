@@ -27,7 +27,8 @@ class S20rts(object):
         self.wasread = False
 
         # Read gridded S20RTS file.
-        fid = open('csemlib/data/s20rts/s20rts_gridded.dat', 'r')
+        filename = os.path.join(self.directory, 's20rts_gridded.dat')
+        fid = open(filename, 'r')
         v_dummy = np.zeros(1898611)
         i = 0
         for f in fid:

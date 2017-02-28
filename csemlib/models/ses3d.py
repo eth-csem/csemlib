@@ -38,6 +38,7 @@ def _read_multi_region_file(data):
 # SES3D object.
 #=======================================================================================================================
 
+
 class Ses3d(object):
     """
     Class handling file-IO for a model in SES3D format.
@@ -46,7 +47,7 @@ class Ses3d(object):
     # Initialisation. ==================================================================================================
 
     def __init__(self, directory, components, interp_method='nearest_neighbour'):
-        #super(Ses3d, self).__init__()
+        super(Ses3d, self).__init__()
         self.rot_mat = None
         self._disc = []
         self._data = []
@@ -162,7 +163,6 @@ class Ses3d(object):
 
 
     # Write original ses3d model to hdf5 file. =========================================================================
-
     def write_to_hdf5(self, filename=None):
         self.read()
         filename = filename or os.path.join(self.directory, "{}.hdf5".format(self.model_info['model']))
@@ -307,7 +307,8 @@ class Ses3d(object):
 
         return ses3d_dmn
 
-
+    def data(self, region=0):
+        return self._data[region]
     # Nearest-neighbor interpolation. ==================================================================================
 
     def nearest_neighbour_interpolation(self, pnt_tree_orig, ses3d_dmn, GridData):

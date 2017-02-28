@@ -41,78 +41,56 @@ def test_fibonacci_plane():
     np.testing.assert_almost_equal(points[1], true_y, decimal=DECIMAL_CLOSE)
 
 
-def test_crust():
-    """
-    Test to ensure that the crust returns correct values.
-    """
 
-    proper_dep = np.array([[38.69471863, 17.96798953],
-                           [38.69471863, 17.96798953]])
-    proper_vs = np.array([[3.64649739, 3.1255109],
-                          [3.64649739, 3.1255109]])
+# def test_gourard_shading():
+#     """
+#     Test to see if the interpolation function works over a tetrahedra.
+#     """
+#
+#     true_val = 4
+#     data = np.array([2, 2, 2, 4]).T
+#     bry = np.array([[0.5, 0.5, 0.5, 0.25]]).T
+#     idx = np.array([[0, 1, 2, 3]]).T
+#
+#     np.testing.assert_almost_equal(
+#         csemlib.models.model.interpolate(idx, bry, data), true_val, decimal=DECIMAL_CLOSE)
+#
 
-    cst = crust.Crust()
-    cst.read()
-
-    x = np.radians([179, 1])
-    y = np.radians([1, 1])
-    lats, lons = np.meshgrid(x, y)
-    vals_dep = cst.eval(lats, lons, param='crust_dep')
-    vals_vs = cst.eval(lats, lons, param='crust_vs')
-
-    np.testing.assert_almost_equal(vals_dep, proper_dep, decimal=DECIMAL_CLOSE)
-    np.testing.assert_almost_equal(vals_vs, proper_vs, decimal=DECIMAL_CLOSE)
-
-
-def test_gourard_shading():
-    """
-    Test to see if the interpolation function works over a tetrahedra.
-    """
-
-    true_val = 4
-    data = np.array([2, 2, 2, 4]).T
-    bry = np.array([[0.5, 0.5, 0.5, 0.25]]).T
-    idx = np.array([[0, 1, 2, 3]]).T
-
-    np.testing.assert_almost_equal(
-        csemlib.models.model.interpolate(idx, bry, data), true_val, decimal=DECIMAL_CLOSE)
-
-
-def test_barycenter_detection():
-    """
-    Simple test to ensure that the interpolation routine works.
-    """
-
-    true_ind = np.array([[0, 0], [3, 3], [7, 7], [2, 2]], dtype=np.int64)
-    true_bar = np.array([[1.00000000e+00, 0.00000000e+00],
-                         [0.00000000e+00, 0.00000000e+00],
-                         [0.00000000e+00, 1.00000000e+00],
-                         [0.00000000e+00, 0.00000000e+00]])
-
-    vertices = [
-        (0, 0, 0), (2, 0, 0), (2, 2, 0), (0, 2, 0),
-        (0, 0, 12), (2, 0, 12), (2, 2, 12), (0, 2, 12),
-    ]
-    x_mesh, y_mesh, z_mesh = np.array(vertices)[:, 0], np.array(vertices)[:, 1], np.array(vertices)[:, 2]
-    x_target, y_target, z_target = np.array([0, 0]), np.array([0, 2]), np.array([0, 12])
-    mesh_info = MeshInfo()
-    mesh_info.set_points(list(vertices))
-    mesh_info.set_facets([
-        [0, 1, 2, 3],
-        [4, 5, 6, 7],
-        [0, 4, 5, 1],
-        [1, 5, 6, 2],
-        [2, 6, 7, 3],
-        [3, 7, 4, 0],
-    ])
-    opts = Options("Q")
-    mesh = build(mesh_info, options=opts)
-    elements = np.array(mesh.elements)
-    ind, bary = csemlib.models.model.shade(x_target, y_target, z_target,
-                                           x_mesh, y_mesh, z_mesh,
-                                           elements)
-    np.testing.assert_almost_equal(ind, true_ind, decimal=DECIMAL_CLOSE)
-    np.testing.assert_almost_equal(bary, true_bar, decimal=DECIMAL_CLOSE)
+# def test_barycenter_detection():
+#     """
+#     Simple test to ensure that the interpolation routine works.
+#     """
+#
+#     true_ind = np.array([[0, 0], [3, 3], [7, 7], [2, 2]], dtype=np.int64)
+#     true_bar = np.array([[1.00000000e+00, 0.00000000e+00],
+#                          [0.00000000e+00, 0.00000000e+00],
+#                          [0.00000000e+00, 1.00000000e+00],
+#                          [0.00000000e+00, 0.00000000e+00]])
+#
+#     vertices = [
+#         (0, 0, 0), (2, 0, 0), (2, 2, 0), (0, 2, 0),
+#         (0, 0, 12), (2, 0, 12), (2, 2, 12), (0, 2, 12),
+#     ]
+#     x_mesh, y_mesh, z_mesh = np.array(vertices)[:, 0], np.array(vertices)[:, 1], np.array(vertices)[:, 2]
+#     x_target, y_target, z_target = np.array([0, 0]), np.array([0, 2]), np.array([0, 12])
+#     mesh_info = MeshInfo()
+#     mesh_info.set_points(list(vertices))
+#     mesh_info.set_facets([
+#         [0, 1, 2, 3],
+#         [4, 5, 6, 7],
+#         [0, 4, 5, 1],
+#         [1, 5, 6, 2],
+#         [2, 6, 7, 3],
+#         [3, 7, 4, 0],
+#     ])
+#     opts = Options("Q")
+#     mesh = build(mesh_info, options=opts)
+#     elements = np.array(mesh.elements)
+#     ind, bary = csemlib.models.model.shade(x_target, y_target, z_target,
+#                                            x_mesh, y_mesh, z_mesh,
+#                                            elements)
+#     np.testing.assert_almost_equal(ind, true_ind, decimal=DECIMAL_CLOSE)
+#     np.testing.assert_almost_equal(bary, true_bar, decimal=DECIMAL_CLOSE)
 
 def test_s20rts():
     """
@@ -162,8 +140,6 @@ def test_s20rts_vtk_single_sphere():
 
     """
     s20mod = s20.S20rts()
-    s20mod.read()
-
     rad = s20mod.layers[0]
     rel_rad = rad/ s20mod.r_earth
     x, y, z = skl.fibonacci_sphere(500)

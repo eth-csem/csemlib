@@ -23,7 +23,7 @@ class Crust(object):
         directory = os.path.split(os.path.split(__file__)[0])[0]
         self.directory = os.path.join(directory, 'data', 'crust')
         self._data = xarray.Dataset()
-        self.crust_dep_smooth_fac = 0.0 #1.0e1
+        self.crust_dep_smooth_fac = 0.0
         self.crust_vs_smooth_fac = 0.0
 
         # Read colatitude values.

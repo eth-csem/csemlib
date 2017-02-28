@@ -5,9 +5,8 @@ import scipy.interpolate as interp
 import xarray
 import h5py
 
-from .model import Model
 
-class Topography(Model):
+class Topography(object):
     """
     Class handling topography models.
     """
