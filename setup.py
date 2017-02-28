@@ -16,8 +16,7 @@ module1 = Extension('s20eval',
 lib = Extension('pymesher',
                 sources=[
                     os.path.join(src, "centroid.c")],
-                extra_compile_args = ["-O3", "-fopenmp"],
-                extra_link_args=['-fopenmp'])
+                extra_compile_args = ["-O3"])
 
 
 def readme():
