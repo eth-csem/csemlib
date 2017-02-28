@@ -4,13 +4,21 @@ from setuptools import find_packages
 from numpy.distutils.core import setup, Extension
 
 
-src = 'csemlib/src/'
+src = os.path.join('csemlib', 'src')
+
 
 module1 = Extension('s20eval',
                     sources=[
                         os.path.join(src, 's20.pyf'),
                         os.path.join(src, 's20_wrapper.f90'),
                         os.path.join(src, 'sph2v_sub.f')])
+
+lib = Extension('pymesher',
+                sources=[
+                    os.path.join(src, "centroid.c")],
+                extra_compile_args = ["-O3", "-fopenmp"],
+                extra_link_args=['-fopenmp'])
+
 
 def readme():
     with open('README.rst') as f:
@@ -32,5 +40,5 @@ setup(
     csem=csemlib.csemlib:cli
     ''',
     ext_package='csemlib.lib',
-    ext_modules=[module1]
+    ext_modules=[module1, lib]
 )
