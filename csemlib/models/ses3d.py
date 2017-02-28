@@ -77,7 +77,7 @@ class Ses3d(object):
         :return: No return values. Fills self._data with an xarray containing the model.
         """
         files = set(os.listdir(self.directory))
-        print self.directory
+        print(self.directory)
         if self.components:
             if not set(self.components).issubset(files):
                 raise IOError('Model directory does not have all components ' + ', '.join(self.components))
@@ -361,7 +361,7 @@ class Ses3d(object):
 
             # No valid component_type.
             else:
-                print 'No valid component_type. Must be perturbation_to_1D, perturbation_to_3D or absolute'
+                print('No valid component_type. Must be perturbation_to_1D, perturbation_to_3D or absolute')
 
         # Update that master GridData structure.
         GridData.df.update(ses3d_dmn.df)
