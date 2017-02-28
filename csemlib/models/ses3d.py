@@ -1,16 +1,30 @@
 import datetime
 import io
-import os
 import yaml
-import h5py
-import numpy as np
 import xarray
+import os
+import sys
+import h5py
+from csemlib.background.grid_data import GridData
 
-from .model import Model, shade, triangulate, interpolate
+import numpy as np
+import scipy.spatial as spatial
+from scipy.interpolate import Rbf
+from scipy.interpolate import griddata
+
 from ..utils import sph2cart, rotate, get_rot_matrix
 
+#=======================================================================================================================
+# Little helper functions.
+#=======================================================================================================================
 
 def _read_multi_region_file(data):
+    """
+    Transform ses3d block_* files into a list of number with the starting points and lengths of the subdomains.
+    :param data: Array containing the numbers listed in a block file.
+    :return: List with numbers of starting indices and lengths of the ses3d subdomains.
+    """
+
     regions = []
     num_region, region_start = None, None
     num_regions = int(data[0])
@@ -20,18 +34,26 @@ def _read_multi_region_file(data):
         regions.append(data[region_start:region_start + num_region])
     return regions
 
+#=======================================================================================================================
+# SES3D object.
+#=======================================================================================================================
 
-class Ses3d(Model):
+class Ses3d(object):
     """
     Class handling file-IO for a model in SES3D format.
     """
 
-    def __init__(self, directory, components):
-        super(Ses3d, self).__init__()
+    # Initialisation. ==================================================================================================
+
+    def __init__(self, directory, components, interp_method='nearest_neighbour'):
+        #super(Ses3d, self).__init__()
         self.rot_mat = None
         self._disc = []
         self._data = []
         self.directory = directory
+
+        self.grid_data_ses3d = None
+        self.interp_method = interp_method
 
         # Read yaml file containing information on the ses3d submodel.
         with io.open(os.path.join(self.directory, 'modelinfo.yml'), 'rt') as fh:
@@ -46,21 +68,21 @@ class Ses3d(Model):
         self.rot_vec = np.array([self.geometry['rot_x'], self.geometry['rot_y'], self.geometry['rot_z']])
         self.rot_angle = self.geometry['rot_angle']
 
-# Not clear yet what that does.
-    def data(self, region=0):
-        return self._data[region]
 
+    # Read original ses3d model. =======================================================================================
 
     def read(self):
+        """
+        Read ses3d model in the original definition with block files etc.
+        :return: No return values. Fills self._data with an xarray containing the model.
+        """
         files = set(os.listdir(self.directory))
         print self.directory
         if self.components:
             if not set(self.components).issubset(files):
-                raise IOError(
-                    'Model directory does not have all components ' +
-                    ', '.join(self.components))
+                raise IOError('Model directory does not have all components ' + ', '.join(self.components))
 
-        # Read values.
+        # Read the block_* files containing the coordinate lines. Make lists of indices characterising the subdomains.
         with io.open(os.path.join(self.directory, 'block_x'), 'rt') as fh:
             data = np.asarray(fh.readlines(), dtype=float)
             col_regions = _read_multi_region_file(data)
@@ -82,19 +104,21 @@ class Ses3d(Model):
             lon_regions[i] = 0.5 * (lon_regions[i][1:] + lon_regions[i][:-1])
             rad_regions[i] = 0.5 * (rad_regions[i][1:] + rad_regions[i][:-1])
 
-        # Read in parameters.
+        # If a taper is present, add it to the components of the ses3d model.
         if self.model_info['taper']:
             components = self.components + ['taper']
         else:
             components = self.components
+
+        # Walk through the components and read their values.
         for p in components:
+
             with io.open(os.path.join(self.directory, p), 'rt') as fh:
                 data = np.asarray(fh.readlines(), dtype=float)
                 val_regions = _read_multi_region_file(data)
 
             for i, _ in enumerate(val_regions):
-                val_regions[i] = val_regions[i].reshape((len(col_regions[i]), len(lon_regions[i]),
-                                                         len(rad_regions[i])), order='C')
+                val_regions[i] = val_regions[i].reshape((len(col_regions[i]), len(lon_regions[i]), len(rad_regions[i])), order='C')
                 if not self._data:
                     self._data = [xarray.Dataset() for j in range(len(val_regions))]
                 self._data[i][p] = (('col', 'lon', 'rad'), val_regions[i])
@@ -136,121 +160,98 @@ class Ses3d(Model):
             self._data[i].attrs['coordinate_system'] = 'spherical'
             self._data[i].attrs['date'] = datetime.datetime.now().__str__()
 
-    def write(self, directory):
 
-        for block, comp in zip(['block_x', 'block_y', 'block_z'], ['col', 'lon', 'rad']):
-            with io.open(os.path.join(directory, block), 'wt') as fh:
-                fh.write(str(len(self._data)) + u"\n")
-                for region in range(len(self._data)):
-                    fh.write(str(len(self._data[region].coords[comp].values) +
-                        1) + u"\n")
-                    if block in ['block_x', 'block_y']:
-                        fh.write(u'\n'.join([str(num) for num in
-                            np.degrees(self._data[region].coords[comp].values) -
-                                self._disc[region][comp]]))
-                        fh.write(u"\n" + str(np.degrees(self._data[region].coords[comp].values[-1])
-                            + self._disc[region][comp]))
-                    else:
-                        fh.write(u'\n'.join([str(num) for num in
-                            self._data[region].coords[comp].values -
-                            self._disc[region][comp]]))
-                        fh.write(u"\n" +
-                                str(self._data[region].coords[comp].values[-1]
-                                + self._disc[region][comp]))
-                    fh.write(u"\n")
+    # Write original ses3d model to hdf5 file. =========================================================================
 
-        for par in self.components:
-            with io.open(os.path.join(directory, par), 'wt') as fh:
-                fh.write(str(len(self._data)) + u"\n")
-                for region in range(len(self._data)):
-                    fh.write(str(len(self._data[region][par].values.ravel())) +
-                            u"\n")
-                    fh.write(u'\n'.join([str(num) for num in self._data[region][par].values.ravel()]))
-                    fh.write(u"\n")
-
-    def eval(self, x, y, z, param=None, region=0):
-        """
-        Return the interpolated parameter at a spatial location.
-
-        For Ses3D models, we rely on Delauny triangulation and barycentric
-        interpolation to determine model values away from grid points. This
-        function will first use meshpy to build up the triangulation. Then,
-        a Kd-tree will be created to locate the closest tetrahedral nodes.
-        Finally, enclosing tetrahedra are found by checking the barycentric
-        coordinates, and linear interpolation is performed over the enclosing
-        simplex.
-        :param x: X coordinate.
-        :param y: Y coordinate.
-        :param z: Z coordinate.
-        :param param: Param to interpolate.
-        :return: Interpolated param at (x, y, z).
-        """
-
-        # Pack up the points.
-        cols, lons, rads = np.meshgrid(
-            self._data[region].coords['col'].values,
-            self._data[region].coords['lon'].values,
-            self._data[region].coords['rad'].values)
-        cols = cols.ravel()
-        lons = lons.ravel()
-        rads = rads.ravel()
-
-        # Generate tetrahedra. Currently this in spherical coordinates, as we need a convex hull.
-        elements = triangulate(cols, lons, rads)
-
-        # Get interpolating functions. Map cartesian coordinates for the interpolation.
-        interp_param = []
-        indices, barycentric_coordinates = shade(x, y, z, self._data[region]['x'].values.ravel(),
-                                                 self._data[region]['y'].values.ravel(),
-                                                 self._data[region]['z'].values.ravel(),
-                                                 elements)
-        for i, p in enumerate(param):
-            interp_param.append(np.array(
-                interpolate(indices, barycentric_coordinates, self._data[region][p].values.ravel()), dtype=np.float64))
-
-        return np.array(interp_param).T
-
-    def eval_point_cloud_griddata(self, GridData):
-        # Read model
-        self.components = list(set(self.model_info['components']).intersection(GridData.components))
-        if self.model_info['taper']:
-            self.components = ['taper'] + self.components
-
-
+    def write_to_hdf5(self, filename=None):
         self.read()
-        # Get dmn
-        for region in range(self.model_info['region_info']['num_regions']):
-            ses3d_dmn = self.extract_ses3d_dmn(GridData, region)
+        filename = filename or os.path.join(self.directory, "{}.hdf5".format(self.model_info['model']))
+        f = h5py.File(filename, "w")
 
-            if len(ses3d_dmn) < 1:
+        parameters = ['x', 'y', 'z'] + self.model_info['components']
+        if self.model_info['taper']:
+            parameters += ['taper']
+
+        for region in range(self.model_info['region_info']['num_regions']):
+            region_grp = f.create_group('region_{}'.format(region))
+            for param in parameters:
+                region_grp.create_dataset(param, data=self.data(region)[param].values.ravel(), dtype='f')
+        f.close()
+
+
+    # Read ses3d model from hdf5 into a GridData structure. ============================================================
+
+    def init_grid_data_hdf5(self, region=0):
+        """
+        Read ses3d model from an HDF5 file that was generated before with Ses3d.write_hdf5.
+        :param region: Subregion index of the ses3d model.
+        :return: No return. Fill self.grid_data_ses3d, the GridData structure containing the material properties of the subregion.
+        """
+
+        # Open HDF5 file containing the ses3d model.
+        filename = os.path.join(self.directory, "{}.hdf5".format(self.model_info['model']))
+        f = h5py.File(filename, "r")
+
+        # Extract Cartesian x, y, z coordinates and assign them to a GridData structure.
+        x = f['region_{}'.format(region)]['x'][:]
+        y = f['region_{}'.format(region)]['y'][:]
+        z = f['region_{}'.format(region)]['z'][:]
+
+        self.grid_data_ses3d = GridData(x, y, z, components=self.components)
+
+        # March through all components and assign values to the GridData structure. Include the taper as a component
+        # if the taper exists.
+        if self.model_info['taper']:
+            components = self.components + ['taper']
+        else:
+            components = self.components
+
+        for component in components:
+            self.grid_data_ses3d.set_component(component, f['region_{}'.format(region)][component][:])
+
+        f.close()
+
+
+    # Ascribe material properties to GridData points. ==================================================================
+
+    def eval_point_cloud_griddata(self, GridData, interp_method=None):
+        """
+        Ascribe material properties to the those GridData points that fall into the ses3d domain.
+        ATTENTION: This function assumes that the ses3d model is available in the form of an HDF5 file, written
+        before with Ses3d.write_hdf5.
+        :param GridData: Pre-existing GridData structure that will be assigned material properties of the ses3d model.
+        :param interp_method: Interpolation method to go from the ses3d block model to the grid points in GridData.
+        :return: No return. GridData is manipulated internally.
+        """
+
+        print('Evaluating SES3D model:', self.model_info['model'])
+        interp_method = interp_method or self.interp_method
+
+        # Loop through all the ses3d subdomains.
+        for region in range(self.model_info['region_info']['num_regions']):
+
+            # Extract points that lie within that specific subdomain.
+            ses3d_dmn = self.extract_ses3d_dmn(GridData, region)
+            if len(ses3d_dmn) == 0:
                 continue
 
-            interp = self.eval(ses3d_dmn.df['x'], ses3d_dmn.df['y'], ses3d_dmn.df['z'], self.components, region)
+            # Fill the GridData structure self.grid_data_ses3d. This is the GridData structure with the grid and the values of the ses3d model.
+            self.init_grid_data_hdf5(region)
 
-            for i, p in enumerate(self.components):
-                if self.model_info['component_type'] == 'perturbation':
-                    if p == 'taper':
-                        ses3d_dmn.df[p] = interp[:, i]
-                        continue
-                    if self.model_info['taper']:
-                        taper = ses3d_dmn.df['taper']
-                        ses3d_dmn.df[p] = (ses3d_dmn.df['one_d_{}'.format(p)] + interp[:, i]) * taper +\
-                                          (1 - taper) * ses3d_dmn.df[p]
-                    else:
-                        ses3d_dmn.df[p] += interp[:, i]
-                elif self.model_info['component_type'] == 'absolute':
-                    if p == 'taper':
-                        ses3d_dmn.df[p] = interp[:, i]
-                        continue
-                    if self.model_info['taper']:
-                        taper = ses3d_dmn.df['taper']
-                        ses3d_dmn.df[p] = taper * interp[:, i] + (1 - taper) * ses3d_dmn.df[p]
-                    else:
-                        ses3d_dmn.df[p] = interp[:, i]
+            # Get the Cartesian coordinates of the ses3d grid, for later use in interpolation.
+            grid_coords = self.grid_data_ses3d.get_coordinates(coordinate_type='cartesian')
 
-            GridData.df.update(ses3d_dmn.df)
-        return GridData
+            # Generate KDTrees, needed later for interpolation.
+            pnt_tree_orig = spatial.cKDTree(grid_coords, balanced_tree=False)
 
+            # Do nearest neighbour unless specified otherwise.
+            if interp_method == 'nearest_neighbour':
+                self.nearest_neighbour_interpolation(pnt_tree_orig, ses3d_dmn, GridData)
+            else:
+                self.grid_and_rbf_interpolation(pnt_tree_orig, ses3d_dmn, interp_method, grid_coords, GridData)
+
+
+    # Extract grid points within ses3d domain. =========================================================================
 
     def extract_ses3d_dmn(self, GridData, region=0):
         """
@@ -307,17 +308,123 @@ class Ses3d(Model):
         return ses3d_dmn
 
 
-    def write_to_hdf5(self, filename=None):
-        self.read()
-        filename = filename or os.path.join(self.directory, "{}.hdf5".format(self.model_info['model']))
-        f = h5py.File(filename, "w")
+    # Nearest-neighbor interpolation. ==================================================================================
 
-        parameters = ['x', 'y', 'z'] + self.model_info['components']
+    def nearest_neighbour_interpolation(self, pnt_tree_orig, ses3d_dmn, GridData):
+        """
+        Implement nearest-neighbor interpolation.
+        :param pnt_tree_orig: KDTree of the grid coordinates in the ses3d model.
+        :param ses3d_dmn: Subset of the GridData structure that falls into the ses3d domain.
+        :param GridData: Master GridData structure.
+        :return: No return. GridData is updated internally.
+        """
+
+        # Get indices of the ses3d sub-GridData structure ses3d_dmn that are nearest neighbors to the ses3d model points.
+        _, indices = pnt_tree_orig.query(ses3d_dmn.get_coordinates(coordinate_type='cartesian'), k=1)
+
+        # March through the components (material properties) of this ses3d model.
+        for component in self.components:
+
+            # Interpolation for the case where properties are perturbations to the 1D background model.
+            if self.model_info['component_type'] == 'perturbation_to_1D':
+
+                # If a taper is present, add perturbations with the taper applied to it.
+                if self.model_info['taper']:
+                    taper = self.grid_data_ses3d.df['taper'][indices].values
+                    one_d = ses3d_dmn.df[:]['one_d_{}'.format(component)]
+                    ses3d_dmn.df[:][component] = ((one_d + self.grid_data_ses3d.df[component][indices].values) * taper) + (1.0 - taper) * ses3d_dmn.df[:][component]
+
+                # Otherwise, if there is no taper, apply the plain perturbations.
+                else:
+                    ses3d_dmn.df[:][component] = one_d + self.grid_data_ses3d.df[component][indices].values
+
+            # Interpolation for the case where properties are perturbations to the 3D heterogeneous model.
+            elif self.model_info['component_type'] == 'perturbation_to_3D':
+
+                # If a taper is present, add perturbations with the taper applied to it.
+                if self.model_info['taper']:
+                    taper = self.grid_data_ses3d.df['taper'][indices].values
+                    one_d = ses3d_dmn.df[:]['one_d_{}'.format(component)]
+                    ses3d_dmn.df[:][component] = ((ses3d_dmn.df[:][component] + self.grid_data_ses3d.df[component][indices].values) * taper) + (1.0 - taper) * ses3d_dmn.df[:][component]
+
+                # Otherwise, if there is no taper, apply the plain perturbations.
+                else:
+                    ses3d_dmn.df[:][component] += self.grid_data_ses3d.df[component][indices].values
+
+            # Interpolation for the case where properties are absolute values.
+            elif self.model_info['component_type'] == 'absolute':
+                if self.model_info['taper']:
+                    taper = self.grid_data_ses3d.df['taper'][indices].values
+                    ses3d_dmn.df[:][component] = taper * self.grid_data_ses3d.df[component][indices].values + (1 - taper) * ses3d_dmn.df[:][component]
+                else:
+                    ses3d_dmn.df[:][component] = self.grid_data_ses3d.df[component][indices].values
+
+            # No valid component_type.
+            else:
+                print 'No valid component_type. Must be perturbation_to_1D, perturbation_to_3D or absolute'
+
+        # Update that master GridData structure.
+        GridData.df.update(ses3d_dmn.df)
+
+
+    # Spline interpolation. Not yet fully functional. ==================================================================
+
+    def grid_and_rbf_interpolation(self, pnt_tree_orig, ses3d_dmn, interp_method, grid_coords, GridData):
+        # Use 30 nearest points
+        _, all_neighbours = pnt_tree_orig.query(ses3d_dmn.get_coordinates(coordinate_type='cartesian'), k=100)
+
+        # Interpolate ses3d value for each grid point
+        i = 0
         if self.model_info['taper']:
-            parameters += ['taper']
+            components = ['taper'] + self.components
+            ses3d_dmn.set_component('taper', np.zeros(len(ses3d_dmn)))
+        else:
+            components = self.components
 
-        for region in range(self.model_info['region_info']['num_regions']):
-            region_grp = f.create_group('region_{}'.format(region))
-            for param in parameters:
-                region_grp.create_dataset(param, data=self.data(region)[param].values.ravel(), dtype='f')
-        f.close()
+        for neighbours in all_neighbours:
+            x_c_orig, y_c_orig, z_c_orig = grid_coords[neighbours].T
+            for component in components:
+                dat_orig = self.grid_data_ses3d.df[component][neighbours].values
+                coords_new = ses3d_dmn.get_coordinates(coordinate_type='cartesian').T
+                x_c_new, y_c_new, z_c_new = coords_new.T[i]
+
+                if interp_method == 'griddata_linear':
+                    pts_local = np.array((x_c_orig, y_c_orig, z_c_orig)).T
+                    xi = np.array((x_c_new, y_c_new, z_c_new))
+                    if self.model_info['component_type'] == 'absolute':
+                        val = griddata(pts_local, dat_orig, xi, method='linear',
+                                       fill_value=ses3d_dmn.df[component].values[i])
+                    elif self.model_info['component_type'] == 'perturbation':
+                        val = griddata(pts_local, dat_orig, xi, method='linear', fill_value=0.0)
+
+                elif interp_method == 'radial_basis_func':
+                    rbfi = Rbf(x_c_orig, y_c_orig, z_c_orig, dat_orig, function='linear')
+                    val = rbfi(x_c_new, y_c_new, z_c_new)
+
+                if self.model_info['component_type'] == 'perturbation':
+                    if self.model_info['taper'] and component != 'taper':
+                        taper = ses3d_dmn.df['taper'].values[i]
+                        one_d = ses3d_dmn.df['one_d_{}'.format(component)].values[i]
+                        ses3d_dmn.df[component].values[i] += (taper * val)
+                        ses3d_dmn.df[component].values[i] = (one_d + val) * taper + \
+                                                            (1 - taper) * ses3d_dmn.df[component].values[i]
+                    else:
+                        ses3d_dmn.df[component].values[i] += val
+                elif self.model_info['component_type'] == 'absolute':
+                    if self.model_info['taper'] and component != 'taper':
+                        taper = ses3d_dmn.df['taper'].values[i]
+                        ses3d_dmn.df[component].values[i] = taper * val + (1-taper) * ses3d_dmn.df[component].values[i]
+                    else:
+                        ses3d_dmn.df[component].values[i] = val
+            i += 1
+
+            if i % 100 == 0:
+                ind = float(i)
+                percent = ind / len(all_neighbours) * 100.0
+                sys.stdout.write("\rProgress: %.1f%% " % percent)
+                sys.stdout.flush()
+        sys.stdout.write("\r")
+        if self.model_info['taper']:
+            del ses3d_dmn.df['taper']
+
+        GridData.df.update(ses3d_dmn.df)
