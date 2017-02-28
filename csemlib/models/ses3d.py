@@ -292,8 +292,12 @@ class Ses3d(Model):
         bottom = 'region_{}_bottom'.format(region)
         top = 'region_{}_top'.format(region)
 
-        tolerance=0.1   # A small tolerance in km to make sure no points are missed, especially near the Earth's surface.
-        ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['r'] >= region_info[bottom] - tolerance]
+        if region_info[top] >= 6371.0:
+            tolerance=0.1   # A small tolerance in km to make sure no points are missed, especially near the Earth's surface.
+        else:
+            tolerance=0.0
+
+        ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['r'] >= region_info[bottom]]
         ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['r'] <= region_info[top] + tolerance]
 
         # Rotate back to the actual physical domain.

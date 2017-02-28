@@ -81,12 +81,11 @@ class Ses3d_rbf(Ses3d):
             if len(ses3d_dmn) == 0:
                 continue
 
-            # Fill the GridData structure self.grid_data_ses3d.
+            # Fill the GridData structure self.grid_data_ses3d. This is the GridData structure with the grid and the values of the ses3d model.
             self.init_grid_data_hdf5(region)
 
             # Get the Cartesian coordinates of the ses3d grid, for later use in interpolation.
             grid_coords = self.grid_data_ses3d.get_coordinates(coordinate_type='cartesian')
-
 
             # Generate KDTrees, needed later for interpolation.
             pnt_tree_orig = spatial.cKDTree(grid_coords, balanced_tree=False)
@@ -101,34 +100,54 @@ class Ses3d_rbf(Ses3d):
 
     def nearest_neighbour_interpolation(self, pnt_tree_orig, ses3d_dmn, GridData):
 
-
+        # Get indices of the ses3d sub-GridData structure ses3d_dmn that are nearest neighbors to the ses3d model points.
         _, indices = pnt_tree_orig.query(ses3d_dmn.get_coordinates(coordinate_type='cartesian'), k=1)
 
         # March through the components (material properties) of this ses3d model.
         for component in self.components:
 
             # Interpolation for the case where properties are perturbations to the 1D background model.
-            if self.model_info['component_type'] == 'perturbation':
+            if self.model_info['component_type'] == 'perturbation_to_1D':
 
                 # If a taper is present, add perturbations with the taper applied to it.
                 if self.model_info['taper']:
                     taper = self.grid_data_ses3d.df['taper'][indices].values
                     one_d = ses3d_dmn.df[:]['one_d_{}'.format(component)]
-                    ses3d_dmn.df[:][component] = ((one_d + self.grid_data_ses3d.df[component][indices].values) * taper) + (1 - taper) * ses3d_dmn.df[:][component]
+                    ses3d_dmn.df[:][component] = ((one_d + self.grid_data_ses3d.df[component][indices].values) * taper) + (1.0 - taper) * ses3d_dmn.df[:][component]
+
+                # Otherwise, if there is no taper, apply the plain perturbations.
+                else:
+                    ses3d_dmn.df[:][component] = one_d + self.grid_data_ses3d.df[component][indices].values
+
+            # Interpolation for the case where properties are perturbations to the 3D heterogeneous model.
+            elif self.model_info['component_type'] == 'perturbation_to_3D':
+
+                # If a taper is present, add perturbations with the taper applied to it.
+                if self.model_info['taper']:
+                    taper = self.grid_data_ses3d.df['taper'][indices].values
+                    one_d = ses3d_dmn.df[:]['one_d_{}'.format(component)]
+                    ses3d_dmn.df[:][component] = ((ses3d_dmn.df[:][component] + self.grid_data_ses3d.df[component][indices].values) * taper) + (1.0 - taper) * ses3d_dmn.df[:][component]
 
                 # Otherwise, if there is no taper, apply the plain perturbations.
                 else:
                     ses3d_dmn.df[:][component] += self.grid_data_ses3d.df[component][indices].values
 
-            if self.model_info['component_type'] == 'absolute':
+            # Interpolation for the case where properties are absolute values.
+            elif self.model_info['component_type'] == 'absolute':
                 if self.model_info['taper']:
                     taper = self.grid_data_ses3d.df['taper'][indices].values
-                    ses3d_dmn.df[:][component] = taper * self.grid_data_ses3d.df[component][indices].values +\
-                                                 (1 - taper) * ses3d_dmn.df[:][component]
+                    ses3d_dmn.df[:][component] = taper * self.grid_data_ses3d.df[component][indices].values + (1 - taper) * ses3d_dmn.df[:][component]
                 else:
                     ses3d_dmn.df[:][component] = self.grid_data_ses3d.df[component][indices].values
 
+            # No valid component_type.
+            else:
+                print 'No valid component_type. Must be perturbation_to_1D, perturbation_to_3D or absolute'
+
+        # Update that master GridData structure.
         GridData.df.update(ses3d_dmn.df)
+
+
 
 
     def grid_and_rbf_interpolation(self, pnt_tree_orig, ses3d_dmn, interp_method, grid_coords, GridData):
