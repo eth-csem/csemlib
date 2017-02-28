@@ -1,5 +1,6 @@
 import numpy as np
 
+from csemlib.io.exodus_reader import ExodusReader
 from ..background.grid_data import GridData
 from ..models.s20rts import S20rts
 from ..models.crust import Crust
@@ -107,5 +108,43 @@ def add_csem_continuous(salvus_mesh, **kwargs):
     #salvus_mesh.attach_field('fluid', np.array(regions == 1, dtype=int))
 
     return salvus_mesh
+
+
+def add_csem_to_discontinuous_exodus(filename, **kwargs):
+    # Default parameters
+    params = dict(eval_crust=False, eval_s20=False)
+    params.update(kwargs)
+
+    salvus_mesh = ExodusReader(filename)
+
+    # Get element centroids
+    if salvus_mesh.ndim == 2:
+        x_c, y_c = salvus_mesh.get_element_centroid().T
+        z_c = np.zeros_like(x_c)
+    else:
+        x_c, y_c, z_c = salvus_mesh.get_element_centroid().T
+
+    # Get element centroid in km
+    rad_c = np.sqrt(x_c ** 2 + y_c ** 2 + z_c ** 2) / 1000.0
+    # Get region corresponding to element centroid
+    regions = one_dimensional.get_region(rad_c)
+
+    for i in np.arange(salvus_mesh.nodes_per_element):
+        print('Adding CSEM to node {} out of {}'.format(i+1, salvus_mesh.nodes_per_element))
+        if salvus_mesh.ndim == 2:
+            x, y = salvus_mesh.points[salvus_mesh.connectivity[:, i]].T / 1000.0
+            z = np.zeros_like(x)
+        else:
+            x, y, z = salvus_mesh.points[salvus_mesh.connectivity[:, i]].T / 1000.0
+        grid_data = _evaluate_csem_salvus(x, y, z, regions, **params)
+
+        for component in grid_data.components:
+            # Convert to m/s
+            vals = grid_data.get_component(component) * 1000
+            salvus_mesh.attach_field('%s_%d' % (component.upper(), i), vals)
+
+    # Attach fluid field
+    salvus_mesh.attach_field('fluid', np.array(regions == 1, dtype=int))
+
 
 
