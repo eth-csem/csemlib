@@ -24,8 +24,9 @@ setup(
     long_description=readme(),
     packages=find_packages(),
     include_package_data=True,
+    dependency_links=['https://github.com/SalvusHub/pyexodus/archive/master.zip#egg=pyexodus-master'],
     install_requires=['click', 'numpy', 'scipy', 'matplotlib', 'xarray', 'meshpy', 'numba', 'cython', 'pyvtk', 'boltons', 'PyYAML',
-                      'h5py'],
+                      'h5py', 'pyexodus'],
     entry_points='''
     [console_scripts]
     csem=csemlib.csemlib:cli
