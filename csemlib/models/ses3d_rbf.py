@@ -1,7 +1,5 @@
 import os
-
 import sys
-
 import h5py
 from csemlib.background.grid_data import GridData
 from csemlib.models.ses3d import Ses3d
@@ -63,6 +61,7 @@ class Ses3d_rbf(Ses3d):
 
     def eval_point_cloud_griddata(self, GridData, interp_method=None):
         """
+        Ascribe material properties to the those GridData points that fall into the ses3d domain.
         ATTENTION: This function assumes that the ses3d model is available in the form of an HDF5 file, written
         before with Ses3d.write_hdf5.
         :param GridData: Pre-existing GridData structure that will be assigned material properties of the ses3d model.
@@ -97,8 +96,14 @@ class Ses3d_rbf(Ses3d):
                 self.grid_and_rbf_interpolation(pnt_tree_orig, ses3d_dmn, interp_method, grid_coords, GridData)
 
 
-
     def nearest_neighbour_interpolation(self, pnt_tree_orig, ses3d_dmn, GridData):
+        """
+        Implement nearest-neighbor interpolation.
+        :param pnt_tree_orig: KDTree of the grid coordinates in the ses3d model.
+        :param ses3d_dmn: Subset of the GridData structure that falls into the ses3d domain.
+        :param GridData: Master GridData structure.
+        :return: No return. GridData is updated internally.
+        """
 
         # Get indices of the ses3d sub-GridData structure ses3d_dmn that are nearest neighbors to the ses3d model points.
         _, indices = pnt_tree_orig.query(ses3d_dmn.get_coordinates(coordinate_type='cartesian'), k=1)
