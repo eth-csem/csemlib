@@ -1,7 +1,7 @@
 /* Hello World program */
 
 #include<stdio.h>
-//#include <stdlib.h>     /* abs */
+#include<math.h>
 
 
 
@@ -37,8 +37,7 @@ void s20eval_grid(long long int len_c, long long int len_l, long long int len_r,
 {
     // Declare internal variables
     long long int ic, il, ir, irm, irp, ilm, ilp;
-    double Ll0mp, Llm0p, Llpm0, Lc0mp, Lcm0p, Lcpm0, colat_i, lon_i, rad_i;
-
+    double Ll0mp, Llm0p, Llpm0, Lc0mp, Lcm0p, Lcpm0, colat_i, lon_i, rad_i, l_left, l_right;
     long long int i;
     for (i=0; i<n; i++) {
         colat_i = colat[i];
@@ -79,9 +78,22 @@ void s20eval_grid(long long int len_c, long long int len_l, long long int len_r,
             }
             // Precompute terms for lagrange interpolation
             if ((i == 0 ) || (lon_i != lon[i-1])){
-                Ll0mp=lagrange(lon_i,l[il],l[ilm],l[ilp]);
-                Llm0p=lagrange(lon_i,l[ilm],l[il],l[ilp]);
-                Llpm0=lagrange(lon_i,l[ilp],l[ilm],l[il]);
+                // Shift coordinates, such there is no strong change near dateline for correct interpolation
+                if (il == 0){
+                    l_left = l[ilm] - 2 * M_PI;
+                }
+                else {
+                    l_left = l[ilm];
+                }
+                if (il == (len_l -1)){
+                    l_right = l[ilp] + 2 * M_PI;
+                }
+                else {
+                    l_right = l[ilp];
+                }
+                Ll0mp=lagrange(lon_i,l[il],l_left,l_right);
+                Llm0p=lagrange(lon_i,l_left,l[il],l_right);
+                Llpm0=lagrange(lon_i,l_right,l_left,l[il]);
             }
             if ((i == 0) || (colat_i != colat[i-1])){
                 Lc0mp=lagrange(colat_i,c[ic],c[ic-1],c[ic+1]);
@@ -98,7 +110,6 @@ void s20eval_grid(long long int len_c, long long int len_l, long long int len_r,
                         (p * dv[irp][ic][ilp] + m * dv[irm][ic][ilp]) * Lc0mp * Llpm0 + \
                         (p * dv[irp][ic-1][ilp] + m * dv[irm][ic-1][ilp]) * Lcm0p * Llpm0 + \
                         (p * dv[irp][ic+1][ilp] + m * dv[irm][ic+1][ilp]) * Lcpm0 * Llpm0;
-
         }
         else {
             dv_out[i] = (p *dv[irp][ic][il] + m * dv[irm][ic][il]);

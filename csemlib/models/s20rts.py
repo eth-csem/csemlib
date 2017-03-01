@@ -75,8 +75,9 @@ class S20rts(object):
         :return: Fractional S velocity perturbation.
         """
 
-        # Convert to longitude range from 0 - 2*pi.
-        lon[lon < 0.0] += 2.0 * np.pi
+        # Convert to longitude range from 0 - 2*pi, copy is important, otherwise the line below will change the coordinates in grid_data
+        lon_copy = lon.copy()
+        lon_copy[lon_copy < 0.0] = lon_copy[lon_copy<0.0] + 2.0 * np.pi
 
         # Set coordinate axes.
         d_deg = 2.5 * np.pi / 180.0
@@ -89,7 +90,7 @@ class S20rts(object):
         # March through all input coordinates.
         n = len(colat)
         dv_out = np.zeros(n)
-        lib.s20eval_grid(len(c), len(l), len(r), n, c, l, r, colat, lon, rad, dv_out, self.dv)
+        lib.s20eval_grid(len(c), len(l), len(r), n, c, l, r, colat, lon_copy, rad, dv_out, self.dv)
 
         return dv_out
 
