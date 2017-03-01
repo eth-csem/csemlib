@@ -15,8 +15,9 @@ module1 = Extension('s20eval',
 
 lib = Extension('pymesher',
                 sources=[
+                    os.path.join(src, "s20_gridded.c"),
                     os.path.join(src, "centroid.c")],
-                extra_compile_args = ["-O3"])
+                extra_compile_args=["-O3"])
 
 
 def readme():

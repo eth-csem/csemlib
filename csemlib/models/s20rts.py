@@ -4,6 +4,8 @@ import numpy as np
 from csemlib.utils import lagrange as L
 from ..lib import s20eval
 
+from ..lib.helpers import load_lib
+lib = load_lib()
 
 class S20rts(object):
     """
@@ -73,9 +75,8 @@ class S20rts(object):
         :return: Fractional S velocity perturbation.
         """
 
-        #- Convert to longitude range from 0 - 2*pi.
-        for i in np.where(lon<0.0)[0]:
-            lon[i]+=2.0*np.pi
+        # Convert to longitude range from 0 - 2*pi.
+        lon[lon < 0.0] += 2.0 * np.pi
 
         # Set coordinate axes.
         d_deg = 2.5 * np.pi / 180.0
@@ -86,67 +87,9 @@ class S20rts(object):
         r = np.concatenate((r_1, r_2))
 
         # March through all input coordinates.
-        N=len(colat)
-        dv_out = np.zeros(N)
-
-        for i in range(1):
-
-            colat_i=colat[i]
-            lon_i=lon[i]
-            rad_i=rad[i]
-
-            # Get individual indeces of the coordinates in the grid file.
-            ic=min(np.where(np.min(np.abs(colat_i-c))==np.abs(colat_i-c))[0])
-            il=min(np.where(np.min(np.abs(lon_i-l))==np.abs(lon_i-l))[0])
-            ir=min(np.where(np.min(np.abs(rad_i-r))==np.abs(rad_i-r))[0])
-
-            # Indeces of depth layers above and below.
-            if (r[ir]>rad_i):
-                irm=ir
-                irp=ir+1
-            else:
-                irm=ir-1
-                irp=ir
-
-            # Weights for linear depth interpolation.
-            m=(rad_i-r[irp])/(r[irm]-r[irp])
-            p=(rad_i-r[irm])/(r[irp]-r[irm])
-
-            # Quadratic interpolation in latitude and longitude, except at the poles.
-            if (ic>0 and ic<70):
-                # Handle the crossing of the longitude dateline.
-                if (il==0):
-                    ilm=142
-                else:
-                    ilm=il-1
-                if (il==142):
-                    ilp=0
-                else:
-                    ilp=il+1
-
-                # Precompute terms for Lagrange interpolation.
-                if ((i==0) or (lon_i!=lon[i-1])):
-                    Ll0mp=L(lon_i,l[il],l[ilm],l[ilp])
-                    Llm0p=L(lon_i,l[ilm],l[il],l[ilp])
-                    Llpm0=L(lon_i,l[ilp],l[ilm],l[il])
-                if ((i==0) or (colat_i!=colat[i-1])):
-                    Lc0mp=L(colat_i,c[ic],c[ic-1],c[ic+1])
-                    Lcm0p=L(colat_i,c[ic-1],c[ic],c[ic+1])
-                    Lcpm0=L(colat_i,c[ic+1],c[ic-1],c[ic])
-
-                # Lagrange interpolation.
-                dv_out[i]=(p*self.dv[irp,ic,il]+m*self.dv[irm,ic,il])*Lc0mp*Ll0mp \
-                +(p*self.dv[irp,ic-1,il]+m*self.dv[irm,ic-1,il])*Lcm0p*Ll0mp \
-                +(p*self.dv[irp,ic+1,il]+m*self.dv[irm,ic+1,il])*Lcpm0*Ll0mp \
-                +(p*self.dv[irp,ic,ilm]+m*self.dv[irm,ic,ilm])*Lc0mp*Llm0p \
-                +(p*self.dv[irp,ic-1,ilm]+m*self.dv[irm,ic-1,ilm])*Lcm0p*Llm0p \
-                +(p*self.dv[irp,ic+1,ilm]+m*self.dv[irp,ic+1,ilm])*Lcpm0*Llm0p \
-                +(p*self.dv[irp,ic,ilp]+m*self.dv[irm,ic,ilp])*Lc0mp*Llpm0 \
-                +(p*self.dv[irp,ic-1,ilp]+m*self.dv[irm,ic-1,ilp])*Lcm0p*Llpm0 \
-                +(p*self.dv[irp,ic+1,ilp]+m*self.dv[irm,ic+1,ilp])*Lcpm0*Llpm0
-
-            else:
-                dv_out[i] = (p*self.dv[irp, ic, il]+m*self.dv[irm, ic, il])
+        n = len(colat)
+        dv_out = np.zeros(n)
+        lib.s20eval_grid(len(c), len(l), len(r), n, c, l, r, colat, lon, rad, dv_out, self.dv)
 
         return dv_out
 
@@ -178,8 +121,8 @@ class S20rts(object):
             return GridData
 
         # Get velocity perturbation
-        #dv = self.eval_gridded(s20rts_dmn.df['c'], s20rts_dmn.df['l'], s20rts_dmn.df['r'])
-        dv = self.eval(s20rts_dmn.df['c'], s20rts_dmn.df['l'], s20rts_dmn.df['r'])
+        dv = self.eval_gridded(s20rts_dmn.df['c'].values, s20rts_dmn.df['l'].values, s20rts_dmn.df['r'].values)
+        #dv = self.eval(s20rts_dmn.df['c'], s20rts_dmn.df['l'], s20rts_dmn.df['r'])
 
         # Compute vp perturbations
         R0 = 1.25
