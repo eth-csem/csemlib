@@ -51,7 +51,7 @@ void s20eval_grid(long long int len_c, long long int len_l, long long int len_r,
         ir = find_idx_closest(len_r, rad_i, r);
 
         // Check this out with andreas, I think It was wrong, so I changed it...
-        if (r[ir] < rad_i) {
+        if (r[ir] > rad_i) {
             irm = ir;
             irp = ir + 1;
         }
