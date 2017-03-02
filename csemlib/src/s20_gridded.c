@@ -1,8 +1,5 @@
-/* Hello World program */
-
 #include<stdio.h>
-//#include <stdlib.h>     /* abs */
-
+#include<math.h>
 
 
 double lagrange(double x, double x0, double x1, double x2)
@@ -37,7 +34,7 @@ void s20eval_grid(long long int len_c, long long int len_l, long long int len_r,
 {
     // Declare internal variables
     long long int ic, il, ir, irm, irp, ilm, ilp;
-    double Ll0mp, Llm0p, Llpm0, Lc0mp, Lcm0p, Lcpm0, colat_i, lon_i, rad_i;
+    double Ll0mp, Llm0p, Llpm0, Lc0mp, Lcm0p, Lcpm0, colat_i, lon_i, rad_i, p, m, l_right, l_left;
 
     long long int i;
     for (i=0; i<n; i++) {
@@ -54,15 +51,29 @@ void s20eval_grid(long long int len_c, long long int len_l, long long int len_r,
         if (r[ir] > rad_i) {
             irm = ir;
             irp = ir + 1;
+            m = (rad_i-r[irp])/(r[irm]-r[irp]);
+            p = (rad_i-r[irm])/(r[irp]-r[irm]);
         }
         else {
             irm = ir - 1;
             irp = ir;
+            m = (rad_i-r[irp])/(r[irm]-r[irp]);
+            p = (rad_i-r[irm])/(r[irp]-r[irm]);
         }
-
-        // Weights for linear depth interpolation.
-        double m = (rad_i-r[irp])/(r[irm]-r[irp]);
-        double p = (rad_i-r[irm])/(r[irp]-r[irm]);
+        // Above domain, extend layer
+        if (irp > (len_r-1)) {
+            irm = ir;
+            irp = ir;
+            m = 0.5;
+            p = 0.5;
+        }
+        // Below domain, extend layer
+        if (irm <= 0) {
+            irm = ir;
+            irp = ir;
+            m = 0.5;
+            p = 0.5;
+        }
 
         // Use three nearest points at the poles
         if (ic == 0) {
@@ -86,9 +97,22 @@ void s20eval_grid(long long int len_c, long long int len_l, long long int len_r,
         }
         // Precompute terms for lagrange interpolation
         if ((i == 0 ) || (lon_i != lon[i-1])){
-            Ll0mp=lagrange(lon_i,l[il],l[ilm],l[ilp]);
-            Llm0p=lagrange(lon_i,l[ilm],l[il],l[ilp]);
-            Llpm0=lagrange(lon_i,l[ilp],l[ilm],l[il]);
+            // Shift coordinates, such there is no strong change near dateline for correct interpolation
+            if (il == 0){
+                l_left = l[ilm] - 2 * M_PI;
+            }
+            else {
+                l_left = l[ilm];
+            }
+            if (il == (len_l -1)){
+                l_right = l[ilp] + 2 * M_PI;
+            }
+            else {
+                l_right = l[ilp];
+            }
+            Ll0mp=lagrange(lon_i,l[il],l_left,l_right);
+            Llm0p=lagrange(lon_i,l_left,l[il],l_right);
+            Llpm0=lagrange(lon_i,l_right,l_left,l[il]);
         }
         if ((i == 0) || (colat_i != colat[i-1])){
             Lc0mp=lagrange(colat_i,c[ic],c[ic-1],c[ic+1]);
