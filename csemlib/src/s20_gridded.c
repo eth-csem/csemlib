@@ -47,28 +47,29 @@ void s20eval_grid(long long int len_c, long long int len_l, long long int len_r,
         il = find_idx_closest(len_l, lon_i, l);
         ir = find_idx_closest(len_r, rad_i, r);
 
-        // Check this out with andreas, I think It was wrong, so I changed it...
-        if (r[ir] > rad_i) {
+        // Nearest layer, is lower, take that layer and the one above
+        if (r[ir] < rad_i) {
             irm = ir;
             irp = ir + 1;
             m = (rad_i-r[irp])/(r[irm]-r[irp]);
             p = (rad_i-r[irm])/(r[irp]-r[irm]);
         }
+        // Nearest layer higher, take that layer and the layer below
         else {
             irm = ir - 1;
             irp = ir;
             m = (rad_i-r[irp])/(r[irm]-r[irp]);
             p = (rad_i-r[irm])/(r[irp]-r[irm]);
         }
-        // Above domain, extend layer
+        // top layer is not defined, set back to nearest layer
         if (irp > (len_r-1)) {
             irm = ir;
             irp = ir;
             m = 0.5;
             p = 0.5;
         }
-        // Below domain, extend layer
-        if (irm <= 0) {
+        // bottom layer is not defined, set back to nearest layer
+        if (irm < 0) {
             irm = ir;
             irp = ir;
             m = 0.5;
@@ -105,7 +106,7 @@ void s20eval_grid(long long int len_c, long long int len_l, long long int len_r,
                 l_left = l[ilm];
             }
             if (il == (len_l -1)){
-                l_right = l[ilp] + 2 * M_PI;
+                l_right = 2 * M_PI;
             }
             else {
                 l_right = l[ilp];
