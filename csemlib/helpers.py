@@ -19,8 +19,8 @@ import os
 import numpy as np
 
 
-LIB_DIR = os.path.dirname(os.path.abspath(
-    inspect.getfile(inspect.currentframe())))
+LIB_DIR = os.path.join(os.path.dirname(os.path.abspath(
+    inspect.getfile(inspect.currentframe()))), "lib")
 print(LIB_DIR)
 cache = []
 

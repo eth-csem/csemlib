@@ -6,7 +6,7 @@ import numpy as np
 from csemlib.utils import lagrange as L
 from ..lib import s20eval
 
-from ..lib.helpers import load_lib
+from ..helpers import load_lib
 lib = load_lib()
 
 class S20rts(object):
