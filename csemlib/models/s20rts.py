@@ -1,10 +1,12 @@
 import os
 import time
+
+import h5py
 import numpy as np
 from csemlib.utils import lagrange as L
 from ..lib import s20eval
 
-from ..lib.helpers import load_lib
+from ..helpers import load_lib
 lib = load_lib()
 
 class S20rts(object):
@@ -29,16 +31,11 @@ class S20rts(object):
         self.wasread = False
 
         # Read gridded S20RTS file.
-        filename = os.path.join(self.directory, 's20rts_gridded.dat')
-        fid = open(filename, 'r')
-        v_dummy = np.zeros(1898611)
-        i = 0
-        for f in fid:
-            v_dummy[i] = float(f.split(' ')[3])
-            i += 1
-        fid.close()
-
-        self.dv=np.reshape(v_dummy,(187,71,143))
+        filename = os.path.join(self.directory, 's20_gridded.hdf5')
+        f = h5py.File(filename, "r")
+        self.dv = f['s20_perturbations'][:]
+        f.close()
+        self.dv = np.reshape(self.dv, (188, 73, 143))
 
 
     def eval(self, colats, lons, rads):
@@ -80,13 +77,13 @@ class S20rts(object):
         lon_copy[lon_copy < 0.0] = lon_copy[lon_copy<0.0] + 2.0 * np.pi
 
         # Set coordinate axes.
-        d_deg = 2.5 * np.pi / 180.0
-        c = np.arange(d_deg, np.pi, d_deg)
-        l = np.arange(d_deg, 2.0 * np.pi, d_deg)
-        r_1 = np.arange(3480.0, 5480.0, 20.0)
-        r_2 = np.arange(5480.0, 6350.0, 10.0)
-        r = np.concatenate((r_1, r_2))
-
+        c = np.linspace(0.0, 180.0, 73)
+        c = np.radians(c)
+        l = np.linspace(0.0, 357.5, 143)
+        l = np.radians(l)
+        r = np.arange(3480.0, 5480.0, 20.0)
+        r = np.append(r, np.arange(5480.0, 6350.0, 10.0))
+        r = np.append(r, np.array([6346]))
         # March through all input coordinates.
         n = len(colat)
         dv_out = np.zeros(n)

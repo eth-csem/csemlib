@@ -1,8 +1,5 @@
-/* Hello World program */
-
 #include<stdio.h>
 #include<math.h>
-
 
 
 double lagrange(double x, double x0, double x1, double x2)
@@ -37,7 +34,8 @@ void s20eval_grid(long long int len_c, long long int len_l, long long int len_r,
 {
     // Declare internal variables
     long long int ic, il, ir, irm, irp, ilm, ilp;
-    double Ll0mp, Llm0p, Llpm0, Lc0mp, Lcm0p, Lcpm0, colat_i, lon_i, rad_i, l_left, l_right;
+    double Ll0mp, Llm0p, Llpm0, Lc0mp, Lcm0p, Lcpm0, colat_i, lon_i, rad_i, p, m, l_right, l_left;
+
     long long int i;
     for (i=0; i<n; i++) {
         colat_i = colat[i];
@@ -49,71 +47,90 @@ void s20eval_grid(long long int len_c, long long int len_l, long long int len_r,
         il = find_idx_closest(len_l, lon_i, l);
         ir = find_idx_closest(len_r, rad_i, r);
 
-        // Check this out with andreas, I think It was wrong, so I changed it...
-        if (r[ir] > rad_i) {
+        // Nearest layer, is lower, take that layer and the one above
+        if (r[ir] < rad_i) {
             irm = ir;
             irp = ir + 1;
+            m = (rad_i-r[irp])/(r[irm]-r[irp]);
+            p = (rad_i-r[irm])/(r[irp]-r[irm]);
         }
+        // Nearest layer higher, take that layer and the layer below
         else {
             irm = ir - 1;
             irp = ir;
+            m = (rad_i-r[irp])/(r[irm]-r[irp]);
+            p = (rad_i-r[irm])/(r[irp]-r[irm]);
+        }
+        // top layer is not defined, set back to nearest layer
+        if (irp > (len_r-1)) {
+            irm = ir;
+            irp = ir;
+            m = 0.5;
+            p = 0.5;
+        }
+        // bottom layer is not defined, set back to nearest layer
+        if (irm < 0) {
+            irm = ir;
+            irp = ir;
+            m = 0.5;
+            p = 0.5;
         }
 
-        // Weights for linear depth interpolation.
-        double m = (rad_i-r[irp])/(r[irm]-r[irp]);
-        double p = (rad_i-r[irm])/(r[irp]-r[irm]);
+        // Use three nearest points at the poles
+        if (ic == 0) {
+            ic = ic + 1;
+        }
+        if (ic == (len_c -1)) {
+            ic = ic - 1;
+        }
 
-        if ((ic > 0) && (ic < (len_c - 1))){
-            if (il == 0){
-                ilm = len_l - 1;
-            }
-            else {
-                ilm = il - 1;
-            }
-            if (il == (len_l - 1)){
-                ilp = 0;
-            }
-            else {
-                ilp = il + 1;
-            }
-            // Precompute terms for lagrange interpolation
-            if ((i == 0 ) || (lon_i != lon[i-1])){
-                // Shift coordinates, such there is no strong change near dateline for correct interpolation
-                if (il == 0){
-                    l_left = l[ilm] - 2 * M_PI;
-                }
-                else {
-                    l_left = l[ilm];
-                }
-                if (il == (len_l -1)){
-                    l_right = l[ilp] + 2 * M_PI;
-                }
-                else {
-                    l_right = l[ilp];
-                }
-                Ll0mp=lagrange(lon_i,l[il],l_left,l_right);
-                Llm0p=lagrange(lon_i,l_left,l[il],l_right);
-                Llpm0=lagrange(lon_i,l_right,l_left,l[il]);
-            }
-            if ((i == 0) || (colat_i != colat[i-1])){
-                Lc0mp=lagrange(colat_i,c[ic],c[ic-1],c[ic+1]);
-                Lcm0p=lagrange(colat_i,c[ic-1],c[ic],c[ic+1]);
-                Lcpm0=lagrange(colat_i,c[ic+1],c[ic-1],c[ic]);
-            }
-            // Lagrange interpolation.
-            dv_out[i] = (p * dv[irp][ic][il] + m * dv[irm][ic][il]) * Lc0mp * Ll0mp + \
-                        (p * dv[irp][ic-1][il] + m * dv[irm][ic-1][il]) * Lcm0p * Ll0mp + \
-                        (p * dv[irp][ic+1][il] + m * dv[irm][ic+1][il]) * Lcpm0 * Ll0mp + \
-                        (p * dv[irp][ic][ilm] + m * dv[irm][ic][ilm]) * Lc0mp * Llm0p + \
-                        (p * dv[irp][ic-1][ilm] + m * dv[irm][ic-1][ilm]) * Lcm0p * Llm0p + \
-                        (p * dv[irp][ic+1][ilm] + m * dv[irp][ic+1][ilm]) * Lcpm0 * Llm0p + \
-                        (p * dv[irp][ic][ilp] + m * dv[irm][ic][ilp]) * Lc0mp * Llpm0 + \
-                        (p * dv[irp][ic-1][ilp] + m * dv[irm][ic-1][ilp]) * Lcm0p * Llpm0 + \
-                        (p * dv[irp][ic+1][ilp] + m * dv[irm][ic+1][ilp]) * Lcpm0 * Llpm0;
+        if (il == 0){
+            ilm = len_l - 1;
         }
         else {
-            dv_out[i] = (p *dv[irp][ic][il] + m * dv[irm][ic][il]);
+            ilm = il - 1;
         }
+        if (il == (len_l - 1)){
+            ilp = 0;
+        }
+        else {
+            ilp = il + 1;
+        }
+        // Precompute terms for lagrange interpolation
+        if ((i == 0 ) || (lon_i != lon[i-1])){
+            // Shift coordinates, such there is no strong change near dateline for correct interpolation
+            if (il == 0){
+                l_left = l[ilm] - 2 * M_PI;
+            }
+            else {
+                l_left = l[ilm];
+            }
+            if (il == (len_l -1)){
+                l_right = 2 * M_PI;
+            }
+            else {
+                l_right = l[ilp];
+            }
+            Ll0mp=lagrange(lon_i,l[il],l_left,l_right);
+            Llm0p=lagrange(lon_i,l_left,l[il],l_right);
+            Llpm0=lagrange(lon_i,l_right,l_left,l[il]);
+        }
+        if ((i == 0) || (colat_i != colat[i-1])){
+            Lc0mp=lagrange(colat_i,c[ic],c[ic-1],c[ic+1]);
+            Lcm0p=lagrange(colat_i,c[ic-1],c[ic],c[ic+1]);
+            Lcpm0=lagrange(colat_i,c[ic+1],c[ic-1],c[ic]);
+        }
+        // Lagrange interpolation.
+        dv_out[i] = (p * dv[irp][ic][il] + m * dv[irm][ic][il]) * Lc0mp * Ll0mp + \
+                    (p * dv[irp][ic-1][il] + m * dv[irm][ic-1][il]) * Lcm0p * Ll0mp + \
+                    (p * dv[irp][ic+1][il] + m * dv[irm][ic+1][il]) * Lcpm0 * Ll0mp + \
+                    (p * dv[irp][ic][ilm] + m * dv[irm][ic][ilm]) * Lc0mp * Llm0p + \
+                    (p * dv[irp][ic-1][ilm] + m * dv[irm][ic-1][ilm]) * Lcm0p * Llm0p + \
+                    (p * dv[irp][ic+1][ilm] + m * dv[irp][ic+1][ilm]) * Lcpm0 * Llm0p + \
+                    (p * dv[irp][ic][ilp] + m * dv[irm][ic][ilp]) * Lc0mp * Llpm0 + \
+                    (p * dv[irp][ic-1][ilp] + m * dv[irm][ic-1][ilp]) * Lcm0p * Llpm0 + \
+                    (p * dv[irp][ic+1][ilp] + m * dv[irm][ic+1][ilp]) * Lcpm0 * Llpm0;
+
     }
 }
 

@@ -34,7 +34,7 @@ install:
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy pytest cython numba xarray pandas matplotlib PyYAML
   - source activate test-environment
   - conda install geos proj4
-  - pip install https://github.com/SalvusHub/pyexodus/archive/master.zip
+  - pip install https://github.com/eth-csem/pyexodus/archive/master.zip
   - pip install pytest-cov codecov cartopy pyvtk boltons
   - pip install -e .
 

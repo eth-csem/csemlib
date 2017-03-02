@@ -1,6 +1,6 @@
 from pyexodus import exodus
 import numpy as np
-from ..lib.helpers import load_lib
+from ..helpers import load_lib
 
 lib = load_lib()
 

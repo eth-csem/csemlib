@@ -5,7 +5,6 @@ from ..background.grid_data import GridData
 from ..models.s20rts import S20rts
 from ..models.crust import Crust
 from ..models import one_dimensional
-from ..models.ses3d_rbf import Ses3d_rbf
 
 
 def _evaluate_csem_salvus(x, y, z, regions, **kwargs):

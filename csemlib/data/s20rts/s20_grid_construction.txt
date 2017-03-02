@@ -1,0 +1,37 @@
+import h5py
+import numpy as np
+from csemlib.models.s20rts import S20rts
+
+
+# Create grid
+c = np.array([0.0, 0.5])
+c = np.append(c, np.linspace(2.5, 177.5, 71))
+c = np.append(c, np.array([179.5, 180.0]))
+c = np.linspace(0.0, 180.0, 73)
+c = np.radians(c)
+l = np.linspace(0.0, 357.5, 143)
+l = np.radians(l)
+r = np.arange(3480.0, 5480.0, 20.0)
+r = np.append(r, np.arange(5480.0, 6350.0, 10.0))
+r = np.append(r, np.array([6346]))
+r_all, c_all, l_all = np.meshgrid(r,c,l, indexing ='ij')
+
+c_all = c_all.flatten()
+l_all = l_all.flatten()
+r_all = r_all.flatten()
+
+# Evaluate grid using fortran script
+s20 = S20rts()
+dv = s20.eval(c_all, l_all, r_all)
+
+# Save text
+dv = np.savetxt('/Users/dirk-philipvanherwaarden/CSEM/csemlib/csemlib/data/s20rts/s20rts_gridded_again.dat', dv, fmt='%16.16f')
+#dv = np.genfromtxt('/Users/dirk-philipvanherwaarden/CSEM/csemlib/csemlib/data/s20rts/s20rts_gridded_again.dat')
+
+# Save hdf5 file
+filename = 's20_gridded.hdf5'
+f = h5py.File(filename, "w")
+f.create_dataset('s20_perturbations', data=dv, dtype='float64')
+f.close()
+
+
