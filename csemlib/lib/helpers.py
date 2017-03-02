@@ -30,9 +30,9 @@ def load_lib():
         return cache[0]
     else:
         # Enable a couple of different library naming schemes.
-        possible_files = glob.glob(os.path.join(LIB_DIR, "pymesher*.so"))
+        possible_files = glob.glob(os.path.join(LIB_DIR, "csemlib*.so"))
         if not possible_files:  # pragma: no cover
-            raise ValueError("Could not find suitable pymesher shared "
+            raise ValueError("Could not find suitable csemlib shared "
                              "library.")
         filename = possible_files[0]
         lib = C.CDLL(filename)

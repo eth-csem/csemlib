@@ -29,18 +29,20 @@ class S20rts(object):
         self.wasread = False
 
         # Read gridded S20RTS file.
-        filename = os.path.join(self.directory, 's20rts_gridded.dat')
-        fid = open(filename, 'r')
-        v_dummy = np.zeros(1898611)
-        i = 0
-        for f in fid:
-            v_dummy[i] = float(f.split(' ')[3])
-            i += 1
-        fid.close()
+        #filename = os.path.join(self.directory, 's20rts_gridded.dat')
+        filename = os.path.join(self.directory, 's20rts_gridded_again.dat')
 
-        self.dv=np.reshape(v_dummy,(187,71,143))
-
-
+        # fid = open(filename, 'r')
+        # v_dummy = np.zeros(1898611)
+        # i = 0
+        # for f in fid:
+        #     v_dummy[i] = float(f.split(' ')[3])
+        #     i += 1
+        # fid.close()
+        #
+        # self.dv=np.reshape(v_dummy,(187,71,143))
+        dv = np.genfromtxt(filename)
+        self.dv=np.reshape(dv,(187,73,143))
     def eval(self, colats, lons, rads):
         """
         Evaluate S20RTS using the original Fortran codes.
@@ -80,8 +82,9 @@ class S20rts(object):
         lon_copy[lon_copy < 0.0] = lon_copy[lon_copy<0.0] + 2.0 * np.pi
 
         # Set coordinate axes.
-        d_deg = 2.5 * np.pi / 180.0
-        c = np.arange(d_deg, np.pi, d_deg)
+        d_deg = 2.5/180 * np.pi
+        c = np.linspace(0.0, np.pi, 73)
+        #l = np.linspace(0.0, 2 * np.pi, 145)
         l = np.arange(d_deg, 2.0 * np.pi, d_deg)
         r_1 = np.arange(3480.0, 5480.0, 20.0)
         r_2 = np.arange(5480.0, 6350.0, 10.0)

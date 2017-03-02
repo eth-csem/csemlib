@@ -13,7 +13,7 @@ module1 = Extension('s20eval',
                         os.path.join(src, 's20_wrapper.f90'),
                         os.path.join(src, 'sph2v_sub.f')])
 
-lib = Extension('pymesher',
+lib = Extension('csemlib',
                 sources=[
                     os.path.join(src, "s20_gridded.c"),
                     os.path.join(src, "centroid.c")],
