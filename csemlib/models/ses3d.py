@@ -337,6 +337,7 @@ class Ses3d(object):
 
                 # Otherwise, if there is no taper, apply the plain perturbations.
                 else:
+                    one_d = ses3d_dmn.df[:]['one_d_{}'.format(component)]
                     ses3d_dmn.df[:][component] = one_d + self.grid_data_ses3d.df[component][indices].values
 
             # Interpolation for the case where properties are perturbations to the 3D heterogeneous model.
