@@ -11,6 +11,8 @@ from .topography import Topography
 # Introduce crustal anisotropy.
 # The problem is really that the different scalings from vs to vp and rho depend on topography, which has a sharp boundary.
 
+from ..helpers import load_lib
+lib = load_lib()
 
 class Crust(object):
     """
@@ -103,7 +105,11 @@ class Crust(object):
         crust_dep += topo
 
         # Add crust and apply a 25 percent taper.
-        cst_zone = add_crust_all_params_topo_griddata_with_taper(cst_zone, crust_dep, crust_vs, topo, taper_percentage=0.25)
+        #cst_zone = add_crust_all_params_topo_griddata_with_taper(cst_zone, crust_dep, crust_vs, topo, taper_percentage=0.25)
+        lib.add_crust(len(cst_zone), crust_dep, crust_vs, topo, cst_zone['vsv'].values, cst_zone['vsh'].values,
+                      cst_zone['vpv'].values, cst_zone['vph'].values, cst_zone['rho'].values, cst_zone['r'].values)
+
+
 
         # Append crustal and non crustal zone back together.
         GridData.df.update(cst_zone)
@@ -157,7 +163,7 @@ def add_crust_all_params_topo_griddata_with_taper(cst_zone, crust_dep, crust_vs,
                 if 'vph' in cst_zone.columns:
                     cst_zone['vph'].values[i] = 1.5865 * crust_vs[i] + 0.844
                 if 'vp' in cst_zone.columns:
-                    cst_zone['vph'].values[i] = 1.5865 * crust_vs[i] + 0.844
+                    cst_zone['vp'].values[i] = 1.5865 * crust_vs[i] + 0.844
                 if 'rho' in cst_zone.columns:
                     cst_zone['rho'].values[i] = 0.2547 * crust_vs[i] + 1.979
 
@@ -198,7 +204,7 @@ def add_crust_all_params_topo_griddata_with_taper(cst_zone, crust_dep, crust_vs,
                 if 'vph' in cst_zone.columns:
                     cst_zone['vph'].values[i] = (1.5865 * crust_vs[i] + 0.844) * frac_crust + (cst_zone['vph'].values[i] * frac_mantle)
                 if 'vp' in cst_zone.columns:
-                    cst_zone['vph'].values[i] = (1.5865 * crust_vs[i] + 0.844) * frac_crust + (cst_zone['vp'].values[i] * frac_mantle)
+                    cst_zone['vp'].values[i] = (1.5865 * crust_vs[i] + 0.844) * frac_crust + (cst_zone['vp'].values[i] * frac_mantle)
                 if 'rho' in cst_zone.columns:
                     cst_zone['rho'].values[i] = (0.2547 * crust_vs[i] + 1.979) * frac_crust + (cst_zone['rho'].values[i] * frac_mantle)
 

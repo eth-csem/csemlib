@@ -16,6 +16,7 @@ module1 = Extension('s20eval',
 lib = Extension('csemlib',
                 sources=[
                     os.path.join(src, "s20_gridded.c"),
+                    os.path.join(src, "add_crust.c"),
                     os.path.join(src, "centroid.c")],
                 extra_compile_args=["-O3"])
 
@@ -23,7 +24,6 @@ lib = Extension('csemlib',
 def readme():
     with open('README.rst') as f:
         return f.read()
-
 
 
 setup(

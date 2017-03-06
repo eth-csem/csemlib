@@ -73,6 +73,27 @@ def load_lib():
             np.ctypeslib.ndpointer(dtype=np.float64, ndim=3,
                                    flags=['C_CONTIGUOUS'])]
 
+        lib.add_crust.restype = C.c_void_p
+        lib.add_crust.argtypes = [
+            C.c_int,
+            np.ctypeslib.ndpointer(dtype=np.float64, ndim=1,
+                                   flags=['C_CONTIGUOUS']),
+            np.ctypeslib.ndpointer(dtype=np.float64, ndim=1,
+                                   flags=['C_CONTIGUOUS']),
+            np.ctypeslib.ndpointer(dtype=np.float64, ndim=1,
+                                   flags=['C_CONTIGUOUS']),
+            np.ctypeslib.ndpointer(dtype=np.float64, ndim=1,
+                                   flags=['C_CONTIGUOUS']),
+            np.ctypeslib.ndpointer(dtype=np.float64, ndim=1,
+                                   flags=['C_CONTIGUOUS']),
+            np.ctypeslib.ndpointer(dtype=np.float64, ndim=1,
+                                   flags=['C_CONTIGUOUS']),
+            np.ctypeslib.ndpointer(dtype=np.float64, ndim=1,
+                                   flags=['C_CONTIGUOUS']),
+            np.ctypeslib.ndpointer(dtype=np.float64, ndim=1,
+                                   flags=['C_CONTIGUOUS']),
+            np.ctypeslib.ndpointer(dtype=np.float64, ndim=1,
+                                   flags=['C_CONTIGUOUS'])]
 
 
         cache.append(lib)
