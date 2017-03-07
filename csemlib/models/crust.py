@@ -6,11 +6,6 @@ import xarray
 
 from .topography import Topography
 
-# TODO
-# Eliminate smoothing of crustal properties.
-# Introduce crustal anisotropy.
-# The problem is really that the different scalings from vs to vp and rho depend on topography, which has a sharp boundary.
-
 from ..helpers import load_lib
 lib = load_lib()
 
