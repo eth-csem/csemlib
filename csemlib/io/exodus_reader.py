@@ -4,6 +4,7 @@ from ..helpers import load_lib
 
 lib = load_lib()
 
+
 class ExodusReader(object):
     """
     This class reads variables from an exodus file into memory, currently only supports
@@ -11,6 +12,7 @@ class ExodusReader(object):
     """
     def __init__(self, filename, mode='r'):
         self._filename = filename
+        assert mode in ['a', 'r'], "Only mode 'a', 'r' is supported"
         self.mode = mode
         self.connectivity = None
         self.nelem = None
@@ -21,20 +23,18 @@ class ExodusReader(object):
         self.z = None
         self.elem_var_names = None
         self.points = None
+        self.e = exodus(self._filename, self.mode)
 
         # Read File
         self._read()
 
     def _read(self):
-        with exodus(self._filename, self.mode) as e:
-            self.ndim = e.num_dims
-            assert self.ndim in [2, 3], "Only '2D', '3D' exodus files are supported."
-            self.connectivity, self.nelem, self.nodes_per_element = e.get_elem_connectivity(id=1)
-            self.connectivity = np.array(self.connectivity, dtype='int64', ) - 1
-            self.elem_var_names = e.get_element_variable_names()
-            self.x, self.y, self.z = e.get_coords()
-            e.close()
-
+        self.ndim = self.e.num_dims
+        assert self.ndim in [2, 3], "Only '2D', '3D' exodus files are supported."
+        self.connectivity, self.nelem, self.nodes_per_element = self.e.get_elem_connectivity(id=1)
+        self.connectivity = np.array(self.connectivity, dtype='int64', ) - 1
+        self.elem_var_names = self.e.get_element_variable_names()
+        self.x, self.y, self.z = self.e.get_coords()
         self.points = np.array((self.x, self.y, self.z)).T
 
     def get_element_centroid(self):
@@ -55,9 +55,8 @@ class ExodusReader(object):
         :param values: numpy array of vlaues to be written
         :return:
         """
-        with exodus(self._filename, mode='a') as e:
-            self.ndim = e.num_dims
-            assert self.ndim in [2, 3], "Only '2D', '3D' exodus files are supported."
-            e.put_element_variable_values(blockId=1, name=name, step=1, values=values)
-            e.close()
+        assert self.mode in ['a'], "Attach field option only available in mode 'a'"
+        self.e.put_element_variable_values(blockId=1, name=name, step=1, values=values)
 
+    def close(self):
+        self.e.close()
