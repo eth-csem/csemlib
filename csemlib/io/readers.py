@@ -67,7 +67,7 @@ def read_from_ses3d_block(directory):
     fid_y.close()
     fid_z.close()
 
-    # Read coordinate lines.
+    # Setup of coordinate lines.
 
     nsubvol = int(dx[0])
 
@@ -81,18 +81,24 @@ def read_from_ses3d_block(directory):
         idz[k] = int(dz[idz[k - 1]]) + idz[k - 1] + 1
 
     for k in np.arange(nsubvol, dtype=int):
+
+        # Coordinates of the box corners.
         colat = dx[(idx[k] + 1):(idx[k] + 1 + int(dx[idx[k]]))]
         lon = dy[(idy[k] + 1):(idy[k] + 1 + int(dy[idy[k]]))]
         rad = dz[(idz[k] + 1):(idz[k] + 1 + int(dz[idz[k]]))]
 
-        # Compute Cartesian coordinates for all grid points.
+        # Coordinates of the box centroids.
+        colat_c = (np.array(colat[0:-1])+np.array(colat[1:]))/2.0
+        lon_c = (np.array(lon[0:-1]) + np.array(lon[1:]))/2.0
+        rad_c = (np.array(rad[0:-1]) + np.array(rad[1:]))/2.0
 
-        for c in colat:
-            for l in lon:
-                xx=np.cos(c*np.pi/180.0)*np.sin(l*np.pi/180.0)
-                yy=np.sin(c*np.pi/180.0)*np.sin(l*np.pi/180.0)
-                zz=np.cos(l*np.pi/180.0)
-                for r in rad:
+        # Compute Cartesian coordinates for all grid points.
+        for c in colat_c:
+            for l in lon_c:
+                xx=np.cos(l*np.pi/180.0)*np.sin(c*np.pi/180.0)
+                yy=np.sin(l*np.pi/180.0)*np.sin(c*np.pi/180.0)
+                zz=np.cos(c*np.pi/180.0)
+                for r in rad_c:
                     x.append(r*xx)
                     y.append(r*yy)
                     z.append(r*zz)
