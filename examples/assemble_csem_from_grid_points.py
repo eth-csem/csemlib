@@ -29,11 +29,11 @@ for depth in depths:
     # Models without crust that must be added before adding the crust. -------------------------------------------------
 
     # Add South Atlantic
-    ses3d = Ses3d('/Users/Andreas/CSEM/csemlib/regional_models/south_atlantic', grid_data.components)
+    ses3d = Ses3d('/Users/Andreas/CSEM/csemlib/regional_models/south_atlantic_2013', grid_data.components)
     ses3d.eval_point_cloud_griddata(grid_data)
 
     # Add Australia
-    ses3d = Ses3d('/Users/Andreas/CSEM/csemlib/regional_models/australia', grid_data.components)
+    ses3d = Ses3d('/Users/Andreas/CSEM/csemlib/regional_models/australia_2010', grid_data.components)
     ses3d.eval_point_cloud_griddata(grid_data)
 
     # Overwrite crustal values. ----------------------------------------------------------------------------------------
@@ -45,11 +45,11 @@ for depth in depths:
     # Add 3D models with crustal component. ----------------------------------------------------------------------------
 
     # Add Japan
-    ses3d = Ses3d('/Users/Andreas/CSEM/csemlib/regional_models/japan', grid_data.components)
+    ses3d = Ses3d('/Users/Andreas/CSEM/csemlib/regional_models/japan_2016', grid_data.components)
     ses3d.eval_point_cloud_griddata(grid_data)
 
     # Add Europe
-    ses3d = Ses3d('/Users/Andreas/CSEM/csemlib/regional_models/europe_1s', grid_data.components)
+    ses3d = Ses3d('/Users/Andreas/CSEM/csemlib/regional_models/europe_2013', grid_data.components)
     ses3d.eval_point_cloud_griddata(grid_data)
 
     # Generate output. -------------------------------------------------------------------------------------------------

@@ -1,0 +1,25 @@
+geometry:
+  rmin: 5371.0
+  rmax: 6371.0
+  cmin: 84.0
+  cmax: 140.0
+  lmin: 105.0
+  lmax: 190.0
+  rotation: False
+  rot_x: 0
+  rot_y: 0
+  rot_z: 0
+  rot_angle: 0
+component_type: perturbation_to_1D
+region_info:
+  num_regions: 1
+  region_0_top: 6371.0
+  region_0_bottom: 5371.0
+components:
+  - rho
+  - vp
+  - vsh
+  - vsv
+model: australia_2010
+taper: True
+reference: 'This is AMSAN.19, as described in Fichtner et al., EPSL, 2010. To incorporate the model into the CSEM, some pragmatic decisions had to be made - mostly because the initial model of the Australia inversion was not the base CSEM. Most importantly, the crustal model was Crust2.0. Here, the perturbations of AMSAN.19 are interpreted as perturbations relative to the CSEM 1D background, which certainly introduces small errors. Furthermore, perturbations at crustal depths are overwritten with the base CSEM crust. This means that the Australia model must be added to the CSEM before adding the crust.'

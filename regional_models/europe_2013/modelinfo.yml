@@ -1,0 +1,29 @@
+geometry:
+  rmin: 5971.0
+  rmax: 6371.0
+  cmin: 50.0
+  cmax: 120.0
+  lmin: -30.0
+  lmax: 60.0
+  rotation: True
+  rot_x: 0
+  rot_y: 1
+  rot_z: 0
+  rot_angle: -57.5
+component_type: absolute
+components:
+  - rho
+  - vp
+  - vsh
+  - vsv
+taper: True
+region_info:
+  num_regions: 3
+  region_0_top: 6371.0
+  region_0_bottom: 6321.0
+  region_1_top: 6321.0
+  region_1_bottom: 6171.0
+  region_2_top: 6171.0
+  region_2_bottom: 5971.0
+model: europe_2013
+reference: 'The is the multiscale Europe model described in Fichtner et al., GJI, 2013. Absolte velocities are corrected to 1 s.'

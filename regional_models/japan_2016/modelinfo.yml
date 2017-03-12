@@ -1,0 +1,27 @@
+geometry:
+  rmin: 5771.0
+  rmax: 6371.0
+  cmin: 30.0
+  cmax: 75.0
+  lmin: 115.0
+  lmax: 160.0
+  rotation: False
+  rot_x: 0
+  rot_y: 0
+  rot_z: 0
+  rot_angle: 0
+component_type: perturbation_to_3D
+num_regions: 1
+region_info:
+  num_regions: 1
+  region_0_top: 6371.0
+  region_0_bottom: 5771.0
+components:
+  - rho
+  - vph
+  - vpv
+  - vsh
+  - vsv
+model: japan_2016
+taper: True
+reference: 'This model is largely the Japan model described in Simute et al. (2016). Some pragmatic adjustments were needed because the initial model of that inversion was not at all the base CSEM, i.e. 1D model, plus S20RTS, plus crust. In code, the construction is described in the directory MODEL_CONSTRUCTION. First, vsv is corrected empirically for attenuation, using the depth-wise velocities in the NW corner that are not affected by the tomography. Then, perturbations are only considered within a taper region where perturbations are credibly large. 3D perturbations within the taper regions are then computed with respect to the base model. For vsh, the procedure is similar. For the P velocities and density, the initial model for FWI was obviously 1D. Therefore, perturbations are taken as perturbations to the S20RTS perturbations, i.e. without even considering the absolute velocities.'

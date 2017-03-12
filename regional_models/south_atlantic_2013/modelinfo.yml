@@ -1,0 +1,25 @@
+geometry:
+  rmin: 4971.0
+  rmax: 6371.0
+  cmin: 50.0
+  cmax: 130.0
+  lmin: -80.0
+  lmax: 60.0
+  rotation: True
+  rot_x: 0.5
+  rot_y: 0.8660264037
+  rot_z: 0
+  rot_angle: 30
+component_type: perturbation_to_1D
+components:
+  - rho
+  - vp
+  - vsh
+  - vsv
+taper: True
+region_info:
+  num_regions: 1
+  region_0_top: 6371.0
+  region_0_bottom: 4971.0
+model: south_atlantic_2013
+reference: 'These are the velocity perturbations of the South Atlantic model described in Colli et al., Tectonophysics, 2013. Since the initial model of that inversion, and the crust in particular, were not the base CSEM, the pragmatic decision was taken to overwrite the crust with the CSEM crust. This means that the South Atlantic model must be added to the CSEM before adding the crustal model.'
