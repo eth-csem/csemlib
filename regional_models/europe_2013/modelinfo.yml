@@ -13,7 +13,8 @@ geometry:
 component_type: absolute
 components:
   - rho
-  - vp
+  - vph
+  - vpv
   - vsh
   - vsv
 taper: True

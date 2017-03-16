@@ -17,7 +17,8 @@ region_info:
   region_0_bottom: 5371.0
 components:
   - rho
-  - vp
+  - vph
+  - vpv
   - vsh
   - vsv
 model: australia_2010

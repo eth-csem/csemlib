@@ -52,7 +52,7 @@ class Crust(object):
         self._data.coords['lon'].attrs['units'] = 'radians'
 
 
-    def interpolate(self, colat, lon, param=None, smooth_fac=1e5):
+    def interpolate(self, colat, lon, param=None, smooth_fac=0.0):
         """
         Evaluate crustal depth and vs given on a regular spherical grid on the points of an arbitrary grid, using
         spline interpolation.

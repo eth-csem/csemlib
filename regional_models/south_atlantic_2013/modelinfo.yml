@@ -13,7 +13,8 @@ geometry:
 component_type: perturbation_to_1D
 components:
   - rho
-  - vp
+  - vph
+  - vpv
   - vsh
   - vsv
 taper: True

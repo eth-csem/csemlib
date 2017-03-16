@@ -1,4 +1,5 @@
 import numpy as np
+
 from csemlib.background.grid_data import GridData
 from csemlib.models.crust import Crust
 from csemlib.models.model import write_vtk, triangulate
@@ -6,13 +7,17 @@ from csemlib.models.s20rts import S20rts
 from csemlib.models.ses3d import Ses3d
 from csemlib.io.readers import read_from_grid
 
+import os
 
-depths=[13,40]
+
+csemlib_directory, _ = os.path.split(os.path.split(__file__)[0])
+model_directory = os.path.join(csemlib_directory, 'regional_models')
+
+depths = [13, 40]
 
 for depth in depths:
 
     # Read some grid points. -------------------------------------------------------------------------------------------
-
     x, y, z = read_from_grid('../grid/OUTPUT/fib_'+str(depth)+'.dat')
     grid_data = GridData(x, y, z)
 
@@ -29,11 +34,11 @@ for depth in depths:
     # Models without crust that must be added before adding the crust. -------------------------------------------------
 
     # Add South Atlantic
-    ses3d = Ses3d('/Users/Andreas/CSEM/csemlib/regional_models/south_atlantic_2013', grid_data.components)
+    ses3d = Ses3d(os.path.join(model_directory, 'south_atlantic_2013'), grid_data.components)
     ses3d.eval_point_cloud_griddata(grid_data)
 
     # Add Australia
-    ses3d = Ses3d('/Users/Andreas/CSEM/csemlib/regional_models/australia_2010', grid_data.components)
+    ses3d = Ses3d(os.path.join(model_directory, 'australia_2010'), grid_data.components)
     ses3d.eval_point_cloud_griddata(grid_data)
 
     # Overwrite crustal values. ----------------------------------------------------------------------------------------
@@ -45,18 +50,18 @@ for depth in depths:
     # Add 3D models with crustal component. ----------------------------------------------------------------------------
 
     # Add Japan
-    ses3d = Ses3d('/Users/Andreas/CSEM/csemlib/regional_models/japan_2016', grid_data.components)
+    ses3d = Ses3d(os.path.join(model_directory, 'japan_2016'), grid_data.components)
     ses3d.eval_point_cloud_griddata(grid_data)
 
     # Add Europe
-    ses3d = Ses3d('/Users/Andreas/CSEM/csemlib/regional_models/europe_2013', grid_data.components)
+    ses3d = Ses3d(os.path.join(model_directory, 'europe_2013'), grid_data.components)
     ses3d.eval_point_cloud_griddata(grid_data)
 
     # Generate output. -------------------------------------------------------------------------------------------------
 
-    #- Make vtk file.
+    # Make vtk file.
     elements = triangulate(x, y, z)
     points = np.array((x, y, z)).T
 
-    filename = '/Users/Andreas/CSEM/csemlib/'+str(depth)+'.vtk'
+    filename = os.path.join(csemlib_directory, str(depth)+'.vtk')
     write_vtk(filename, points, elements, grid_data.df['vsv'])

@@ -35,8 +35,10 @@ tests/vtk/
 # Exodus files
 *.e
 
-# Models
+# Regional models
 ses3d_models/
+regional_models/
+!*regional_models/*/modelinfo.yml
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
