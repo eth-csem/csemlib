@@ -15,7 +15,7 @@ def write_to_ses3d(directory, component, filename, GridData):
 
     if (component in GridData.components):
 
-        print 'Write ses3d file.\n'
+        print('Write ses3d file.\n')
 
         fid_m = open(os.path.join(directory,filename), 'w')
 
@@ -60,7 +60,7 @@ def write_to_ses3d(directory, component, filename, GridData):
             fid_m.write(str(nx * ny * nz) + '\n')
 
             for i in np.arange(nx*ny*nz):
-                fid_m.write(str(GridData.df['vsv'][i]) + '\n')
+                fid_m.write(str(GridData.df[component][i]) + '\n')
 
         # Clean up.
 
@@ -68,4 +68,4 @@ def write_to_ses3d(directory, component, filename, GridData):
 
     else:
 
-        print component+' is not a valid component.\n'
+        print(component+' is not a valid component.\n')
