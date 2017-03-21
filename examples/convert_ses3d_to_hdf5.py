@@ -9,7 +9,7 @@ from csemlib.models.ses3d import Ses3d
 csemlib_directory, _ = os.path.split(os.path.split(__file__)[0])
 models_directory = os.path.join(csemlib_directory, 'regional_models')
 model_dir = os.path.join(models_directory, 'australia_2010')
-model_dir = '/home/sed/CSEM/csemlib/regional_models/south_east_asia_2017/initial'
+
 # Read yaml file containing information on the ses3d submodel.
 with io.open(os.path.join(model_dir, 'modelinfo.yml'), 'rt') as fh:
     model_info = yaml.load(fh)

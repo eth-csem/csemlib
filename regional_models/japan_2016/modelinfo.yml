@@ -11,7 +11,6 @@ geometry:
   rot_z: 0
   rot_angle: 0
 component_type: perturbation_to_3D
-num_regions: 1
 region_info:
   num_regions: 1
   region_0_top: 6371.0

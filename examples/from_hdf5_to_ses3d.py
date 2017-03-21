@@ -19,7 +19,6 @@ ses3d = Ses3d(model_dir, components)
 ses3d.init_grid_data_hdf5()
 grid_data = ses3d.grid_data_ses3d
 
-
 # Generate output in ses3d format.\\
 for component in components:
     write_to_ses3d(model_dir, component, '{}_new'.format(component), grid_data)
