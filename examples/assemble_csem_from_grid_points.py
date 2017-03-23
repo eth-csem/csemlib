@@ -57,6 +57,10 @@ for depth in depths:
     ses3d = Ses3d(os.path.join(model_directory, 'europe_2013'), grid_data.components)
     ses3d.eval_point_cloud_griddata(grid_data)
 
+    # Add Marmara
+    ses3d = Ses3d(os.path.join(model_directory, 'marmara_2017'), grid_data.components)
+    ses3d.eval_point_cloud_griddata(grid_data)
+
     # Generate output. -------------------------------------------------------------------------------------------------
 
     # Make vtk file.

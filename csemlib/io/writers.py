@@ -60,7 +60,7 @@ def write_to_ses3d(directory, component, filename, GridData):
             fid_m.write(str(nx * ny * nz) + '\n')
 
             for i in np.arange(nx*ny*nz):
-                fid_m.write(str(GridData.df['vsv'][i]) + '\n')
+                fid_m.write(str(GridData.df[component][i]) + '\n')
 
         # Clean up.
 
