@@ -78,7 +78,6 @@ class Ses3d(object):
         :return: No return values. Fills self._data with an xarray containing the model.
         """
         files = set(os.listdir(self.directory))
-        print(self.directory)
         if self.components:
             if not set(self.components).issubset(files):
                 raise IOError('Model directory does not have all components ' + ', '.join(self.components))
@@ -175,7 +174,7 @@ class Ses3d(object):
         for region in range(self.model_info['region_info']['num_regions']):
             region_grp = f.create_group('region_{}'.format(region))
             for param in parameters:
-                region_grp.create_dataset(param, data=self.data(region)[param].values.ravel(), dtype='f')
+                region_grp.create_dataset(param, data=self.data(region)[param].values.ravel(), dtype='d')
         f.close()
 
 
@@ -249,7 +248,6 @@ class Ses3d(object):
                 self.nearest_neighbour_interpolation(pnt_tree_orig, ses3d_dmn, GridData)
             else:
                 self.grid_and_rbf_interpolation(pnt_tree_orig, ses3d_dmn, interp_method, grid_coords, GridData)
-
 
     # Extract grid points within ses3d domain. =========================================================================
 
@@ -346,7 +344,6 @@ class Ses3d(object):
                 # If a taper is present, add perturbations with the taper applied to it.
                 if self.model_info['taper']:
                     taper = self.grid_data_ses3d.df['taper'][indices].values
-                    one_d = ses3d_dmn.df[:]['one_d_{}'.format(component)]
                     ses3d_dmn.df[:][component] = ((ses3d_dmn.df[:][component] + self.grid_data_ses3d.df[component][indices].values) * taper) + (1.0 - taper) * ses3d_dmn.df[:][component]
 
                 # Otherwise, if there is no taper, apply the plain perturbations.

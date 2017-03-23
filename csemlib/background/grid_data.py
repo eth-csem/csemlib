@@ -88,6 +88,7 @@ class GridData:
         self.add_col_lon_rad()
 
     def add_one_d(self, add_to_components=True):
+
         one_d_rho, one_d_vpv, one_d_vph, one_d_vsv, one_d_vsh, one_d_eta, one_d_Qmu, one_d_Qkappa = \
             csem_1d_background_eval_point_cloud(self.df['r'])
 
