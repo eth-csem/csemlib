@@ -51,6 +51,8 @@ def write_to_ses3d(directory, component, filename, GridData):
 
         fid_m.write(str(nsubvol) + '\n')
 
+        count_i_subvol=0
+
         for n in np.arange(nsubvol, dtype=int):
 
             nx = int(dx[idx[n]]) - 1
@@ -59,8 +61,10 @@ def write_to_ses3d(directory, component, filename, GridData):
 
             fid_m.write(str(nx * ny * nz) + '\n')
 
-            for i in np.arange(nx*ny*nz):
+            for i in np.arange(nx*ny*nz)+count_i_subvol:
                 fid_m.write(str(GridData.df[component][i]) + '\n')
+        
+            count_i_subvol=i
 
         # Clean up.
 

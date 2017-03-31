@@ -27,4 +27,4 @@ region_info:
   region_2_top: 6171.0
   region_2_bottom: 5971.0
 model: europe_2013
-reference: 'The is the multiscale Europe model described in Fichtner et al., GJI, 2013. Absolte velocities are corrected to 1 s.'
+reference: 'The is the multiscale Europe model described in Fichtner et al., GJI, 2013. Absolte velocities are corrected to 1 s. The model is a cropped version of the original model, i.e. it only reaches to 400 km depth. Below that, the North Atlantic model of Rickers et al. (2013) is appended.'
