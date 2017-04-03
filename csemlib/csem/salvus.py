@@ -1,4 +1,5 @@
 import numpy as np
+import os
 
 from ..io.exodus_reader import ExodusReader
 from ..models.ses3d import Ses3d
@@ -7,10 +8,14 @@ from ..models.s20rts import S20rts
 from ..models.crust import Crust
 from ..models import one_dimensional
 
+csemlib_directory, _ = os.path.split(os.path.split(__file__)[0])
+model_dir = os.path.join(csemlib_directory, '..', 'regional_models')
+
 
 def _evaluate_csem_salvus(x, y, z, regions, **kwargs):
     # Default parameters
-    params = dict(eval_crust=False, eval_s20=False, eval_japan=True, eval_regional=True)
+    params = dict(eval_crust=False, eval_s20=False, eval_japan=True, eval_regional=True,
+                  eval_south_atlantic=False, eval_australia=False, eval_europe=False)
     params.update(kwargs)
 
     grid_data = GridData(x, y, z, solver='salvus')
@@ -21,16 +26,13 @@ def _evaluate_csem_salvus(x, y, z, regions, **kwargs):
         s20 = S20rts()
         s20.eval_point_cloud_griddata(grid_data)
 
-    if params['eval_japan']:
-        mod = Ses3d('/home/sed/CSEM/csemlib/ses3d_models/japan', grid_data.components)
+    if params['eval_south_atlantic']:
+        mod = Ses3d(os.path.join(model_dir, 'south_atlantic_2013'), grid_data.components)
         mod.eval_point_cloud_griddata(grid_data)
 
     # Evaluate regional ses3d models. Requires models to be present still hardcoded replace this with smtng better
-    if params['eval_regional']:
-        mod = Ses3d('/home/sed/CSEM/csemlib/ses3d_models/Australia', grid_data.components)
-        mod.eval_point_cloud_griddata(grid_data)
-
-        mod = Ses3d('/home/sed/CSEM/csemlib/ses3d_models/south_atlantic', grid_data.components)
+    if params['eval_australia']:
+        mod = Ses3d(os.path.join(model_dir, 'australia_2010'), grid_data.components)
         mod.eval_point_cloud_griddata(grid_data)
 
     # Add crust
@@ -38,11 +40,16 @@ def _evaluate_csem_salvus(x, y, z, regions, **kwargs):
         cst = Crust()
         cst.eval_point_cloud_grid_data(grid_data)
 
-    # Add europe model on top of crust
-    if params['eval_regional']:
-        mod = Ses3d('/home/sed/CSEM/csemlib/ses3d_models/europe_1s', grid_data.components)
+    # Add Japan model on top of crust
+    if params['eval_japan']:
+        mod = Ses3d(os.path.join(model_dir, 'japan_2016'), grid_data.components)
         mod.eval_point_cloud_griddata(grid_data)
-    print('finished europe')
+
+    # Add Europe model on top of crust
+    if params['eval_europe']:
+        mod = Ses3d(os.path.join(model_dir, 'europe_2013'), grid_data.components)
+        mod.eval_point_cloud_griddata(grid_data)
+
     return grid_data
 
 

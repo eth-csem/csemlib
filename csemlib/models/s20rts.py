@@ -37,7 +37,6 @@ class S20rts(object):
         f.close()
         self.dv = np.reshape(self.dv, (188, 73, 143))
 
-
     def eval(self, colats, lons, rads):
         """
         Evaluate S20RTS using the original Fortran codes.
