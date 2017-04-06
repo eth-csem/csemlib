@@ -85,7 +85,7 @@ def read_from_ses3d_block(directory):
         # Coordinates of the box corners.
         colat = dx[(idx[k] + 1):(idx[k] + 1 + int(dx[idx[k]]))]
         lon = dy[(idy[k] + 1):(idy[k] + 1 + int(dy[idy[k]]))]
-        rad = dz[(idz[k] + 1):(idz[k] + 1 + int(dz[idz[k]]))] 
+        rad = dz[(idz[k] + 1):(idz[k] + 1 + int(dz[idz[k]]))]
         
         # Coordinates of the box centroids.
         colat_c = (np.array(colat[0:-1])+np.array(colat[1:]))/2.0
@@ -102,8 +102,7 @@ def read_from_ses3d_block(directory):
                     x.append(r*xx)
                     y.append(r*yy)
                     z.append(r*zz)
-                        #if (k==1):
-                        #print r*np.sqrt(xx*xx+yy*yy+zz*zz)
+                      
 
     # Rotate, if needed.
 
