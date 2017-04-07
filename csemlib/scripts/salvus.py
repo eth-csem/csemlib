@@ -14,7 +14,7 @@ model_dir = os.path.join(csemlib_directory, '..', 'regional_models')
 
 def _evaluate_csem_salvus(x, y, z, regions, **kwargs):
     # Default parameters
-    params = dict(eval_crust=False, eval_s20=False, eval_japan=True, eval_regional=True,
+    params = dict(eval_crust=False, eval_s20=False, eval_japan=True,
                   eval_south_atlantic=False, eval_australia=False, eval_europe=False)
     params.update(kwargs)
 
@@ -98,9 +98,12 @@ def add_csem_continuous(salvus_mesh, **kwargs):
     if salvus_mesh.ndim == 2:
         x, y = salvus_mesh.points.T * 6371.0 / salvus_mesh.scale
         z = np.zeros_like(x)
-    # 3D
-    else:
+    # 3D case
+    elif salvus_mesh.ndim == 3:
         x, y, z = salvus_mesh.points.T * 6371.0 / salvus_mesh.scale
+    else:
+        raise ValueError('Incorrect amount of dimensions in Salvus mesh file')
+
     rad = np.sqrt(x ** 2 + y ** 2 + z ** 2)
 
     # Get region corresponding to element centroid
@@ -110,9 +113,6 @@ def add_csem_continuous(salvus_mesh, **kwargs):
     for component in grid_data.components:
         vals = grid_data.get_component(component) * 1000
         salvus_mesh.attach_field('%s' % component.upper(), vals)
-
-    # Attach fluid field, (meshes generated with this function normally don't have fluids
-    #salvus_mesh.attach_field('fluid', np.array(regions == 1, dtype=int))
 
     return salvus_mesh
 
@@ -128,8 +128,10 @@ def add_csem_to_discontinuous_exodus(filename, **kwargs):
     if salvus_mesh.ndim == 2:
         x_c, y_c = salvus_mesh.get_element_centroid().T
         z_c = np.zeros_like(x_c)
-    else:
+    elif salvus_mesh.ndim == 3:
         x_c, y_c, z_c = salvus_mesh.get_element_centroid().T
+    else:
+        raise ValueError('Incorrect amount of dimensions in Salvus mesh file')
 
     # Get element centroid in km
     rad_c = np.sqrt(x_c ** 2 + y_c ** 2 + z_c ** 2) / 1000.0

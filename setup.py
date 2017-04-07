@@ -37,7 +37,7 @@ setup(
                       'h5py', 'pyexodus'],
     entry_points='''
     [console_scripts]
-    csem=csemlib.csemlib:cli
+    csem=csemlib.scripts.csem:cli
     ''',
     ext_package='csemlib.lib',
     ext_modules=[module1, lib]
