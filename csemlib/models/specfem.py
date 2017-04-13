@@ -168,7 +168,7 @@ class TriLinearInterpolator:
 
     def check_hull(self, pnt, vtx):
         reference_coordinates = self.inverse_coordinate_transform(pnt, vtx)
-        return (np.linalg.norm(reference_coordinates, ord='inf') <= 1. + 1e-3), reference_coordinates
+        return (max(abs(reference_coordinates)) <= 1. + 1e-3), reference_coordinates
 
 
     def inverse_jacobian_at_point(self, pnt, vtx):
@@ -225,7 +225,7 @@ class TriLinearInterpolator:
             if (np.abs(objective_function) < tol).all():
                 return solution
             else:
-                detJ, jacobian_inverse_t = self.inverse_jacobian_at_point(solution, vtx, detJ, jacobian_inverse_t)
+                detJ, jacobian_inverse_t = self.inverse_jacobian_at_point(solution, vtx)
                 solution += np.dot(jacobian_inverse_t.T, objective_function)
             if num_iter > 10:
                 raise Exception('inverseCoordinateTransform in Specfem failed to converge after 10 iterations.')
