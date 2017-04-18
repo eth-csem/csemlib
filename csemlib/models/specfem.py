@@ -156,8 +156,34 @@ class Specfem(object):
 
 class TriLinearInterpolator:
     """
-    This class handles trilinear interpolation of hexahedral meshes
+    This class handles trilinear interpolation on hexahedral element
+    (translated from Salvus code)
+
+     reference hex, with r,s,t=[-1,1]x[-1,1]x[-1,1]
+   *
+   *                                      (v7)                    (v6)
+   *                                        /--------------d------/+
+   *                                     /--|                  /-- |
+   *                                 /---   |              /---    |
+   *                              /--       |       f   /--        |
+   *                           /--          |         --           |
+   *                    (v4) +---------------b--------+ (v5)       | \gamma
+   *                         |              |         |            |          ^
+   *                         |              |         |            |          |
+   *                         |              |       g |            |          |
+   *    ^                    |              |         |            |          |
+   *    | (t)                |              |         |            |          |
+   *    |                    |            --+-------- |----c-------+ (v2)     |
+   *    |                    |        ---/ (v1)       |         /--          ---
+   *    |                    |     --/              e |     /--- /> \beta
+   *    |         (s)        | ---/                   |  /--                 /-
+   *    |         /-         +/--------------a--------+--                  --
+   *    |     /---          (v0)                    (v3)
+   *    | /---               |--------------> \alpha
+   *    +-----------------> (r)
+
     """
+
 
     def __init__(self):
         self.mNodesR = np.array([-1, -1, +1, +1, -1, +1, +1, -1])
@@ -215,9 +241,6 @@ class TriLinearInterpolator:
         num_iter = 0
         solution = np.array([0.0, 0.0, 0.0])
         while True:
-            jacobian_inverse_t = np.zeros((3, 3))
-            detJ = 0.0
-
             T = self.coordinate_transform(solution, vtx)
 
             objective_function = np.array([pnt[0] - T[0], pnt[1] - T[1], pnt[2] - T[2]])
