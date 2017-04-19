@@ -13,7 +13,7 @@ import os
 csemlib_directory, _ = os.path.split(os.path.split(__file__)[0])
 model_directory = os.path.join(csemlib_directory, 'regional_models')
 
-depths = [13, 40]
+depths = [413]
 
 for depth in depths:
 
@@ -59,6 +59,26 @@ for depth in depths:
 
     # Add Marmara
     ses3d = Ses3d(os.path.join(model_directory, 'marmara_2017'), grid_data.components)
+    ses3d.eval_point_cloud_griddata(grid_data)
+    
+    # Add South-East Asia
+    ses3d = Ses3d(os.path.join(model_directory, 'south_east_asia_2017'), grid_data.components)
+    ses3d.eval_point_cloud_griddata(grid_data)
+
+    # Add Iberia 2015
+    ses3d = Ses3d(os.path.join(model_directory, 'iberia_2015'), grid_data.components)
+    ses3d.eval_point_cloud_griddata(grid_data)
+    
+    # Add Iberia 2017
+    ses3d = Ses3d(os.path.join(model_directory, 'iberia_2017'), grid_data.components)
+    ses3d.eval_point_cloud_griddata(grid_data)
+    
+    # Add North Atlantic 2013
+    ses3d = Ses3d(os.path.join(model_directory, 'north_atlantic_2013'), grid_data.components)
+    ses3d.eval_point_cloud_griddata(grid_data)
+
+    # Add North America 2017
+    ses3d = Ses3d(os.path.join(model_directory, 'north_america_2017'), grid_data.components)
     ses3d.eval_point_cloud_griddata(grid_data)
 
     # Generate output. -------------------------------------------------------------------------------------------------
