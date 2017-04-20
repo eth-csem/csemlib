@@ -2,6 +2,8 @@ import h5py
 import numpy as np
 import scipy.spatial as spatial
 import os
+import sys
+import warnings
 
 from ..helpers import load_lib
 lib = load_lib()
@@ -20,7 +22,7 @@ class Specfem(object):
         self.r_earth = 6371.0
         self.r_CMB = 3480.0
         self.tolerance = 0.1
-        self.step_length = 0.014
+        self.step_length = 0.066  # computed from a maximum change to the model of 1.4%
         self.ndim = 3
         self.nelem = None
         self.nodes_per_element = 8
@@ -37,8 +39,9 @@ class Specfem(object):
 
     def read(self, write_to_h5=True):
         """
-        :param filename: filename which contains the nodal positions
-        :return:
+        Reads the kernels and mesh information, this is quite slow therefore the preferred option is
+        to write this data to hdf5 and use this file for reading.
+        :param write_to_h5: True or False
         """
         self.nodes = np.genfromtxt(os.path.join(self.directory, 'node_coordinates.txt')) * self.r_earth
         self.betav = np.genfromtxt(os.path.join(self.directory, 'reg_1_bulk_betav_kernel_smooth_values.txt'))
@@ -50,6 +53,9 @@ class Specfem(object):
             self.write_to_hdf5()
 
     def read_from_hdf5(self):
+        """
+        Reads kernel information from hdf5 file
+        """
         # Open HDF5 file containing the ses3d model.
         filename = os.path.join(self.directory, "global_update.hdf5")
         f = h5py.File(filename, "r")
@@ -63,8 +69,11 @@ class Specfem(object):
 
         self.nelem = len(self.connectivity)
 
-    def write_to_hdf5(self, filename=None):
-        filename = filename or os.path.join(self.directory, "global_update.hdf5")
+    def write_to_hdf5(self):
+        """
+        Writes an hdf5 file with a default filename
+        """
+        filename = os.path.join(self.directory, "global_update.hdf5")
         f = h5py.File(filename, "w")
 
         f.create_dataset('connectivity', data=self.connectivity, dtype='int64')
@@ -74,6 +83,14 @@ class Specfem(object):
         f.close()
 
     def eval_point_cloud_griddata(self, GridData):
+        """
+        This function interpolates the kernel onto the GridData structure,
+        depending on how the Specfem object is initialized it will use
+        nearest neighbour or trilinear interpolation.
+
+        :param GridData: GridData object which contains
+        :return: No return. GridData is updated internally.
+        """
         specfem_dmn = self.extract_specfem_dmn(GridData)
 
 
@@ -86,14 +103,13 @@ class Specfem(object):
 
         elif self.interp_method == 'trilinear_interpolation':
             print('Performing trilinear interpolation')
-            self.trilinear_interpolation(specfem_dmn)
+            self.trilinear_interpolation(specfem_dmn, GridData)
 
     def extract_specfem_dmn(self, GridData):
         """
-        Extract those points from the current collection of grid points that fall inside a ses3d subdomain.
+        Extract those points from the current collection of grid points that fall inside the specfem subdomain.
         :param GridData: GridData structure with collection of current grid points and their properties.
-        :param region: Index of the ses3d subregion, starting with 0.
-        :return: Subset of GridData that falls into that specific ses3d subdomain.
+        :return: Subset of GridData that falls into that specific specfem subdomain.
         """
 
         specfem_dmn = GridData.copy()
@@ -111,17 +127,13 @@ class Specfem(object):
         :return: No return. GridData is updated internally.
         """
 
-        components = ['vsv', 'vsh']
-
-        # Get indices of the ses3d sub-GridData structure ses3d_dmn that are nearest neighbors to the ses3d model points.
+        # Get indices of the nearest neighbours
         _, indices = pnt_tree_orig.query(specfem_dmn.get_coordinates(coordinate_type='cartesian'), k=1)
 
-        for component in components:
-            if component == 'vsv':
-                specfem_dmn.df[:][component] += self.betav[indices] * self.step_length
-
-            elif component == 'vsh':
-                specfem_dmn.df[:][component] += self.betah[indices] * self.step_length
+        # update vsv
+        specfem_dmn.df[:]['vsv'] += self.betav[indices] * self.step_length
+        # update vsh
+        specfem_dmn.df[:]['vsh'] += self.betah[indices] * self.step_length
 
         GridData.df.update(specfem_dmn.df)
 
@@ -135,19 +147,57 @@ class Specfem(object):
         lib.centroid(self.ndim, self.nelem, self.nodes_per_element,
                      self.connectivity, np.ascontiguousarray(self.nodes), self.centroids)
 
-    def trilinear_interpolation(self, specfem_dmn, GridData, nelem_to_search=5):
+    def trilinear_interpolation(self, specfem_dmn, GridData, nelem_to_search=20):
+        """
 
+        :param specfem_dmn: Subset of GridData that falls into that specific specfem subdomain
+        :param GridData: Master GridData
+        :param nelem_to_search: number of surrounding elements that are searched to find the
+        enclosing element.
+        :return: No return. GridData is updated internally.
+        """
         # Generate KD-Tree from centroids
         self.get_element_centroid()
         centroid_tree = spatial.cKDTree(self.centroids, balanced_tree=False)
 
         # Get list of tuples (dist, index) sorted on distance
-        dist, ind = centroid_tree.query(specfem_dmn.get_coordinates(coordinate_type='cartesian'), k=nelem_to_search)
+        points = specfem_dmn.get_coordinates(coordinate_type='cartesian')
+        _, element_indices = centroid_tree.query(points, k=nelem_to_search)
 
-        # Interpolate with tri_linear interpolation for nelem_to_search closest elements approx (5-10) should be good
+        # reorder connectivity array to match ordering of interpolation routine
+        permutation = [0, 3, 2, 1, 4, 5, 6, 7]
+        i = np.argsort(permutation)
+        connectivity_reordered = self.connectivity[:, i]
 
-        # Do Salvus thing here
-        # Get interpolated result and write tile
+        tlp = TriLinearInterpolator()
+        for idx in range(len(points))[:]:
+            element_indices_for_point = element_indices[idx, :]
+
+            for ii in range(nelem_to_search):
+                vtx = self.nodes[connectivity_reordered[element_indices_for_point[ii], :]]
+                pnt = points[idx]
+
+                solution = tlp.check_hull(pnt=pnt, vtx=vtx)
+                if solution[0]:
+                    weights = tlp.interpolate_at_point(solution[1])
+                    vsv = self.betav[connectivity_reordered[element_indices_for_point[ii], :]]
+                    vsv_at_point = np.sum(vsv*weights)
+                    specfem_dmn.df['vsv'].loc[idx] += vsv_at_point * self.step_length
+
+                    vsh = self.betah[connectivity_reordered[element_indices_for_point[ii], :]]
+                    vsh_at_point = np.sum(vsh*weights)
+                    specfem_dmn.df['vsh'].loc[idx] += vsh_at_point * self.step_length
+
+                    break
+                elif ii == nelem_to_search - 1:
+                    warnings.warn('no element found for ' + str(pnt))
+
+            if idx % 500 == 0:
+                ind = float(idx)
+                percent = ind / len(points) * 100.0
+                sys.stdout.write("\rProgress: %.1f%% " % percent)
+                sys.stdout.flush()
+        sys.stdout.write("\r")
 
         # Update master GridData structure.
         GridData.df.update(specfem_dmn.df)
@@ -193,8 +243,13 @@ class TriLinearInterpolator:
         self.nodes_per_element = 8
 
     def check_hull(self, pnt, vtx):
+        """
+        :param pnt: point to be tested
+        :param vtx: hexahedral element nodes
+        :return: True/False and coordinates of the reference element
+        """
         reference_coordinates = self.inverse_coordinate_transform(pnt, vtx)
-        return (max(abs(reference_coordinates)) <= 1. + 1e-3), reference_coordinates
+        return (max(abs(reference_coordinates)) <= 1. + 0.05), reference_coordinates
 
 
     def inverse_jacobian_at_point(self, pnt, vtx):
@@ -236,7 +291,7 @@ class TriLinearInterpolator:
         """
         scalexy = max(abs(vtx[1, 0] - vtx[0, 0]), abs(vtx[1, 1] - vtx[0, 1]))
         scale = max(abs(vtx[1, 2] - vtx[0, 2]), scalexy)
-        tol = 1e-4 * scale
+        tol = 1e-8 * scale
 
         num_iter = 0
         solution = np.array([0.0, 0.0, 0.0])
@@ -244,9 +299,9 @@ class TriLinearInterpolator:
             T = self.coordinate_transform(solution, vtx)
 
             objective_function = np.array([pnt[0] - T[0], pnt[1] - T[1], pnt[2] - T[2]])
-
             if (np.abs(objective_function) < tol).all():
                 return solution
+
             else:
                 detJ, jacobian_inverse_t = self.inverse_jacobian_at_point(solution, vtx)
                 solution += np.dot(jacobian_inverse_t.T, objective_function)
@@ -276,13 +331,17 @@ class TriLinearInterpolator:
 
     @staticmethod
     def interpolate_at_point(pnt):
+        """
+        :param pnt: reference element coordinates
+        :return: weights of the element nodes
+        """
         r = pnt[0]
         s = pnt[1]
         t = pnt[2]
 
         interpolator = np.zeros(8)
         interpolator[0] = -0.125 * r * s * t + 0.125 * r * s + 0.125 * r * t - \
-                          0.125* r + 0.125 * s * t - 0.125 * s - 0.125 * t + 0.125
+                          0.125 * r + 0.125 * s * t - 0.125 * s - 0.125 * t + 0.125
         interpolator[1] = +0.125 * r * s * t - 0.125 * r * s + 0.125 * r * t - 0.125 * r - \
                           0.125 * s * t + 0.125 * s - 0.125 * t + 0.125
         interpolator[2] = -0.125 * r * s * t + 0.125 * r * s - 0.125 * r * t + 0.125 * r - \
