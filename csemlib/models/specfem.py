@@ -103,7 +103,7 @@ class Specfem(object):
 
         elif self.interp_method == 'trilinear_interpolation':
             print('Performing trilinear interpolation')
-            self.trilinear_interpolation(specfem_dmn, GridData)
+            self.trilinear_interpolation_in_c(specfem_dmn, GridData)
 
     def extract_specfem_dmn(self, GridData):
         """
@@ -178,6 +178,8 @@ class Specfem(object):
                 pnt = points[idx]
 
                 solution = tlp.check_hull(pnt=pnt, vtx=vtx)
+
+                # if point in element, do the interpolation
                 if solution[0]:
                     weights = tlp.interpolate_at_point(solution[1])
                     vsv = self.betav[connectivity_reordered[element_indices_for_point[ii], :]]
@@ -200,6 +202,46 @@ class Specfem(object):
         sys.stdout.write("\r")
 
         # Update master GridData structure.
+        GridData.df.update(specfem_dmn.df)
+
+    def trilinear_interpolation_in_c(self, specfem_dmn, GridData, nelem_to_search=20):
+        """
+
+        :param specfem_dmn: Subset of GridData that falls into that specific specfem subdomain
+        :param GridData: Master GridData
+        :param nelem_to_search: number of surrounding elements that are searched to find the
+        enclosing element.
+        :return: No return. GridData is updated internally.
+        """
+        # Generate KD-Tree from centroids
+        self.get_element_centroid()
+        centroid_tree = spatial.cKDTree(self.centroids, balanced_tree=False)
+
+        # Get list of tuples (dist, index) sorted on distance
+        points = specfem_dmn.get_coordinates(coordinate_type='cartesian')
+        _, element_indices = centroid_tree.query(points, k=nelem_to_search)
+
+        # reorder connectivity array to match ordering of interpolation routine
+        permutation = [0, 3, 2, 1, 4, 5, 6, 7]
+        i = np.argsort(permutation)
+        connectivity_reordered = self.connectivity[:, i]
+
+        nelem = len(connectivity_reordered)
+        nelem_to_search = nelem_to_search
+        npoints = len(specfem_dmn)
+        npoints_mesh = len(self.nodes)
+        nearest_element_indices = element_indices
+        enclosing_elem_indices = np.zeros((npoints, 8), dtype=np.int64)
+
+        weights = np.zeros((npoints, 8))
+
+        nfailed = lib.triLinearInterpolator(nelem, nelem_to_search, npoints, npoints_mesh,
+                                  nearest_element_indices, np.ascontiguousarray(connectivity_reordered), enclosing_elem_indices,
+                                  np.ascontiguousarray(self.nodes), weights, np.ascontiguousarray(points))
+        #print(enclosing_elem_indices)
+        print(nfailed)
+        specfem_dmn.df[:]['vsv'] += np.sum(self.betav[enclosing_elem_indices] * weights, axis=1) * self.step_length
+        #print(weights)
         GridData.df.update(specfem_dmn.df)
 
 
@@ -297,7 +339,6 @@ class TriLinearInterpolator:
         solution = np.array([0.0, 0.0, 0.0])
         while True:
             T = self.coordinate_transform(solution, vtx)
-
             objective_function = np.array([pnt[0] - T[0], pnt[1] - T[1], pnt[2] - T[2]])
             if (np.abs(objective_function) < tol).all():
                 return solution
@@ -305,6 +346,7 @@ class TriLinearInterpolator:
             else:
                 detJ, jacobian_inverse_t = self.inverse_jacobian_at_point(solution, vtx)
                 solution += np.dot(jacobian_inverse_t.T, objective_function)
+
             if num_iter > 10:
                 raise Exception('inverseCoordinateTransform in Specfem failed to converge after 10 iterations.')
             num_iter += 1
