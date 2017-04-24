@@ -17,7 +17,8 @@ lib = Extension('csemlib',
                 sources=[
                     os.path.join(src, "s20_gridded.c"),
                     os.path.join(src, "add_crust.c"),
-                    os.path.join(src, "centroid.c")],
+                    os.path.join(src, "centroid.c"),
+                    os.path.join(src, "trilinearinterpolator.c")],
                 extra_compile_args=["-O3"])
 
 

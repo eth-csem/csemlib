@@ -95,5 +95,25 @@ def load_lib():
                                    flags=['C_CONTIGUOUS'])]
 
 
+        lib.triLinearInterpolator.restype = C.c_int64
+        lib.triLinearInterpolator.argtypes = [
+            C.c_int,
+            C.c_int,
+            C.c_int,
+            C.c_int,
+            np.ctypeslib.ndpointer(dtype=np.int64, ndim=2,
+                                   flags=['C_CONTIGUOUS']),
+            np.ctypeslib.ndpointer(dtype=np.int64, ndim=2,
+                                   flags=['C_CONTIGUOUS']),
+            np.ctypeslib.ndpointer(dtype=np.int64, ndim=2,
+                                   flags=['C_CONTIGUOUS']),
+            np.ctypeslib.ndpointer(dtype=np.float64, ndim=2,
+                                   flags=['C_CONTIGUOUS']),
+            np.ctypeslib.ndpointer(dtype=np.float64, ndim=2,
+                                   flags=['C_CONTIGUOUS']),
+            np.ctypeslib.ndpointer(dtype=np.float64, ndim=2,
+                                   flags=['C_CONTIGUOUS'])]
+
+
         cache.append(lib)
         return lib
