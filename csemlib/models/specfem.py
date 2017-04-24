@@ -147,7 +147,7 @@ class Specfem(object):
         lib.centroid(self.ndim, self.nelem, self.nodes_per_element,
                      self.connectivity, np.ascontiguousarray(self.nodes), self.centroids)
 
-    def trilinear_interpolation(self, specfem_dmn, GridData, nelem_to_search=20):
+    def trilinear_interpolation(self, specfem_dmn, GridData, nelem_to_search=30):
         """
 
         :param specfem_dmn: Subset of GridData that falls into that specific specfem subdomain
@@ -204,7 +204,7 @@ class Specfem(object):
         # Update master GridData structure.
         GridData.df.update(specfem_dmn.df)
 
-    def trilinear_interpolation_in_c(self, specfem_dmn, GridData, nelem_to_search=20):
+    def trilinear_interpolation_in_c(self, specfem_dmn, GridData, nelem_to_search=25):
         """
 
         :param specfem_dmn: Subset of GridData that falls into that specific specfem subdomain
@@ -238,10 +238,18 @@ class Specfem(object):
         nfailed = lib.triLinearInterpolator(nelem, nelem_to_search, npoints, npoints_mesh,
                                   nearest_element_indices, np.ascontiguousarray(connectivity_reordered), enclosing_elem_indices,
                                   np.ascontiguousarray(self.nodes), weights, np.ascontiguousarray(points))
-        #print(enclosing_elem_indices)
-        print(nfailed)
-        specfem_dmn.df[:]['vsv'] += np.sum(self.betav[enclosing_elem_indices] * weights, axis=1) * self.step_length
-        #print(weights)
+
+        if nfailed > 0:
+            warning_string = '%d points were not interpolated in trilinear interpolation routine, ' \
+                             'increase nelem_to_search and/or tolerances ' %nfailed
+            warnings.warn(warning_string)
+
+        if 'vsv' in specfem_dmn.components:
+            specfem_dmn.df[:]['vsv'] += np.sum(self.betav[enclosing_elem_indices] * weights, axis=1) * self.step_length
+
+        if 'vsh' in specfem_dmn.components:
+            specfem_dmn.df[:]['vsh'] += np.sum(self.betah[enclosing_elem_indices] * weights, axis=1) * self.step_length
+
         GridData.df.update(specfem_dmn.df)
 
 
@@ -291,7 +299,7 @@ class TriLinearInterpolator:
         :return: True/False and coordinates of the reference element
         """
         reference_coordinates = self.inverse_coordinate_transform(pnt, vtx)
-        return (max(abs(reference_coordinates)) <= 1. + 0.05), reference_coordinates
+        return (max(abs(reference_coordinates)) <= 1. + 0.01), reference_coordinates
 
 
     def inverse_jacobian_at_point(self, pnt, vtx):
