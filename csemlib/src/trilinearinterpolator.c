@@ -103,7 +103,7 @@ int checkHull(double pnt[3], double vtx[8][3], double solution[3])
         // if converged, check if inside element
         for (i = 0; i < 3; i = i + 1)
         {
-            if (fabs(solution[i]) > (1 + 0.02))
+            if (fabs(solution[i]) > (1 + 0.025))
                 return 0; // if not in element return False
         }
         return 1; // if converged and in element return true
@@ -219,7 +219,7 @@ int inverseCoordinateTransform(double pnt[3], double vtx[8][3], double solution[
               fabs(vtx[1][0] - vtx[0][0]) : fabs(vtx[1][1] - vtx[0][1]);
     scale = fabs((vtx[1][2] - vtx[0][2])) > scalexy ? fabs(vtx[1][2] - vtx[0][2]) : scalexy;
 
-    tol = 1e-8 * scale;
+    tol = 1e-10 * scale;
     while (num_iter < max_iter)
     {
         coordinateTransform(solution, vtx, T);
