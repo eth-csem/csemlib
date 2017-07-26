@@ -21,7 +21,7 @@ class Specfem(object):
         self.betah = None
         self.r_earth = 6371.0
         self.r_CMB = 3480.0
-        self.tolerance = 0.1
+        self.tolerance = -5.0  # tolerance for extracting the domain at the surface
         self.step_length = 0.066  # computed from a maximum change to the model of 1.4%
         self.ndim = 3
         self.nelem = None
@@ -147,7 +147,7 @@ class Specfem(object):
         lib.centroid(self.ndim, self.nelem, self.nodes_per_element,
                      self.connectivity, np.ascontiguousarray(self.nodes), self.centroids)
 
-    def trilinear_interpolation(self, specfem_dmn, GridData, nelem_to_search=30):
+    def trilinear_interpolation(self, specfem_dmn, GridData, nelem_to_search=50):
         """
 
         :param specfem_dmn: Subset of GridData that falls into that specific specfem subdomain
