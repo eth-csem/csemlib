@@ -4,9 +4,6 @@ from csemlib.models.s20rts import S20rts
 
 
 # Create grid
-c = np.array([0.0, 0.5])
-c = np.append(c, np.linspace(2.5, 177.5, 71))
-c = np.append(c, np.array([179.5, 180.0]))
 c = np.linspace(0.0, 180.0, 73)
 c = np.radians(c)
 l = np.linspace(0.0, 357.5, 143)
