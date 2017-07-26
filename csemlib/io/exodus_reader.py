@@ -15,9 +15,9 @@ class ExodusReader(object):
         assert mode in ['a', 'r'], "Only mode 'a', 'r' is supported"
         self.mode = mode
         self.connectivity = None
-        self.nelem = None
         self.nodes_per_element = None
         self.ndim = None
+        self.nelem = None
         self.x = None
         self.y = None
         self.z = None
@@ -52,11 +52,30 @@ class ExodusReader(object):
         """
         Write values with name to exodus file
         :param name: name of the variable to be writte
-        :param values: numpy array of vlaues to be written
+        :param values: numpy array of values to be written
         :return:
         """
+
         assert self.mode in ['a'], "Attach field option only available in mode 'a'"
-        self.e.put_element_variable_values(blockId=1, name=name, step=1, values=values)
+
+        if values.size == self.nelem:
+            self.e.put_element_variable_values(blockId=1, name=name, step=1, values=values)
+
+        elif values.size == self.npoint:
+            idx = self.e.get_node_variable_names().index(name) + 1
+            self.e.put_node_variable_name(name, index=idx)
+            self.e.put_node_variable_values(name, 1, values)
+
+        else:
+            raise ValueError('Shape matches neither the nodes nor the '
+                             'elements')
+    @property
+    def npoint(self):
+         """
+         Number of points / nodes in the mesh
+         """
+         return self.points.shape[0]
+
 
     def close(self):
         self.e.close()
