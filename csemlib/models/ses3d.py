@@ -263,10 +263,25 @@ class Ses3d(object):
         geometry = self.model_info['geometry']
         ses3d_dmn = GridData.copy()
 
+        # move points near boundary into region above if multiregion model
+        region_info = self.model_info['region_info']
+        num_regions = region_info['num_regions']
+
+        # if the ses3d model has multiple regions, slightly shift near boundaries to the upper region.
+        if num_regions > 1:
+            eps = 0.001
+            for reg in range(num_regions)[1:]:
+                top = region_info['region_{}_top'.format(reg)]
+                relative_shift = (top + 2 * eps) / top
+                nodes_to_be_shifted = (np.abs(ses3d_dmn.df['r'] - top) < eps)
+                ses3d_dmn.df['r'][nodes_to_be_shifted] *= relative_shift
+                ses3d_dmn.df['x'][nodes_to_be_shifted] *= relative_shift
+                ses3d_dmn.df['y'][nodes_to_be_shifted] *= relative_shift
+                ses3d_dmn.df['z'][nodes_to_be_shifted] *= relative_shift
+
         # Rotate all current points into the rotated ses3d coordinate system, in case there is a rotation.
         if geometry['rotation'] is True:
             ses3d_dmn.rotate(-np.radians(geometry['rot_angle']), geometry['rot_x'], geometry['rot_y'], geometry['rot_z'])
-
         # Extract points from the current data structure in colatitude direction.
         ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['c'] >= np.deg2rad(geometry['cmin'])]
         ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['c'] <= np.deg2rad(geometry['cmax'])]
@@ -287,28 +302,41 @@ class Ses3d(object):
             ses3d_dmn.df = ses3d_dmn.df[(ses3d_dmn.df["l"] <= np.deg2rad(l_max)) | (ses3d_dmn.df["l"] >= np.deg2rad(l_min))]
 
         # Extract points from the current data structure in radial direction.
-        region_info = self.model_info['region_info']
         bottom = 'region_{}_bottom'.format(region)
         top = 'region_{}_top'.format(region)
 
         if region_info[top] >= 6371.0:
-            tolerance=0.1   # A small tolerance in km to make sure no points are missed, especially near the Earth's surface.
+            tolerance = 0.1   # A small tolerance in km to make sure no points are missed near Earth's surface.
         else:
-            tolerance=0.0
+            tolerance = 0.0
 
-        ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['r'] >= region_info[bottom]]
+        ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['r'] > region_info[bottom]]
         ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['r'] <= region_info[top] + tolerance]
+
+        # get radial layers for each region
+        with io.open(os.path.join(self.directory, 'block_z'), 'rt') as fh:
+            data = np.asanyarray(fh.readlines(), dtype=float)
+            rad_regions = _read_multi_region_file(data)
+
+        # slightly shift nodes at layer boundaries such that spherical slices through a ses3d layer boundary look clean
+        eps = 0.001
+        for rad in rad_regions[region]:
+            relative_shift = (rad + eps) / rad
+            nodes_to_be_shifted = (np.abs(ses3d_dmn.df['r'] - rad) < eps)
+            ses3d_dmn.df['r'][nodes_to_be_shifted] *= relative_shift
+            ses3d_dmn.df['x'][nodes_to_be_shifted] *= relative_shift
+            ses3d_dmn.df['y'][nodes_to_be_shifted] *= relative_shift
+            ses3d_dmn.df['z'][nodes_to_be_shifted] *= relative_shift
 
         # Rotate back to the actual physical domain.
         if geometry['rotation'] is True:
             ses3d_dmn.rotate(np.radians(geometry['rot_angle']), geometry['rot_x'], geometry['rot_y'], geometry['rot_z'])
-
         return ses3d_dmn
 
     def data(self, region=0):
         return self._data[region]
-    # Nearest-neighbor interpolation. ==================================================================================
 
+    # Nearest-neighbor interpolation. ==================================================================================
     def nearest_neighbour_interpolation(self, pnt_tree_orig, ses3d_dmn, GridData):
         """
         Implement nearest-neighbor interpolation.
