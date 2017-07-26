@@ -11,13 +11,15 @@ from csemlib.io.readers import read_from_grid
 import os
 
 csemlib_directory, _ = os.path.split(os.path.split(__file__)[0])
-model_directory = os.path.join(csemlib_directory, '..', 'regional_models')
+model_dir = os.path.join(csemlib_directory, '..', 'regional_models')
 
 
 def assemble_csem(grid_data, **kwargs):
     # Default parameters
-    params = dict(eval_crust=True, eval_s20=True, eval_japan=True,
-                  eval_south_atlantic=True, eval_australia=True, eval_europe=True, eval_marmara=False)
+    params = dict(eval_crust=True, eval_s20=True, eval_south_atlantic=True, eval_australia=True,
+                  eval_japan=True, eval_europe=True, eval_marmara_2017=True,
+                  eval_south_east_asia_2017=True, eval_iberia_2015=True, eval_iberia_2017=True,
+                  eval_north_atlantic_2013=True, eval_north_america=True)
     params.update(kwargs)
 
     # Initialise with CSEM 1D background model.
@@ -32,12 +34,12 @@ def assemble_csem(grid_data, **kwargs):
 
     # Add South Atlantic
     if params['eval_south_atlantic']:
-        ses3d = Ses3d(os.path.join(model_directory, 'south_atlantic_2013'), grid_data.components)
+        ses3d = Ses3d(os.path.join(model_dir, 'south_atlantic_2013'), grid_data.components)
         ses3d.eval_point_cloud_griddata(grid_data)
 
     # Add Australia
     if params['eval_australia']:
-        ses3d = Ses3d(os.path.join(model_directory, 'australia_2010'), grid_data.components)
+        ses3d = Ses3d(os.path.join(model_dir, 'australia_2010'), grid_data.components)
         ses3d.eval_point_cloud_griddata(grid_data)
 
     # Overwrite crustal values. ----------------------------------------------------------------------------------------
@@ -51,17 +53,42 @@ def assemble_csem(grid_data, **kwargs):
 
     # Add Japan
     if params['eval_japan']:
-        ses3d = Ses3d(os.path.join(model_directory, 'japan_2016'), grid_data.components)
+        ses3d = Ses3d(os.path.join(model_dir, 'japan_2016'), grid_data.components)
         ses3d.eval_point_cloud_griddata(grid_data)
 
     # Add Europe
     if params['eval_europe']:
-        ses3d = Ses3d(os.path.join(model_directory, 'europe_2013'), grid_data.components)
+        ses3d = Ses3d(os.path.join(model_dir, 'europe_2013'), grid_data.components)
         ses3d.eval_point_cloud_griddata(grid_data)
 
     # Add Marmara
-    if params['eval_marmara']:
-        ses3d = Ses3d(os.path.join(model_directory, 'marmara_2017'), grid_data.components)
+    if params['eval_marmara_2017']:
+        ses3d = Ses3d(os.path.join(model_dir, 'marmara_2017'), grid_data.components)
+        ses3d.eval_point_cloud_griddata(grid_data)
+
+    # Add South-East Asia
+    if params['eval_south_east_asia_2017']:
+        ses3d = Ses3d(os.path.join(model_dir, 'south_east_asia_2017'), grid_data.components)
+        ses3d.eval_point_cloud_griddata(grid_data)
+
+    # Add Iberia 2015
+    if params['eval_iberia_2015']:
+        ses3d = Ses3d(os.path.join(model_dir, 'iberia_2015'), grid_data.components)
+        ses3d.eval_point_cloud_griddata(grid_data)
+
+    # Add Iberia 2017
+    if params['eval_iberia_2017']:
+        ses3d = Ses3d(os.path.join(model_dir, 'iberia_2017'), grid_data.components)
+        ses3d.eval_point_cloud_griddata(grid_data)
+
+    # Add North Atlantic 2013
+    if params['eval_north_atlantic_2013']:
+        ses3d = Ses3d(os.path.join(model_dir, 'north_atlantic_2013'), grid_data.components)
+        ses3d.eval_point_cloud_griddata(grid_data)
+
+    # Add North America 2017
+    if params['eval_north_america']:
+        ses3d = Ses3d(os.path.join(model_dir, 'north_america_2017'), grid_data.components)
         ses3d.eval_point_cloud_griddata(grid_data)
 
     return grid_data
@@ -86,4 +113,4 @@ def depth_slice_to_vtk(depth, resolution, filename=None):
         name = 'depth_' + str(depth) + "_res_" + str(resolution) + ".vtk"
         filename = os.path.join(".", name)
     print('Writing vtk to {}'.format(filename))
-    write_vtk(filename, points, elements, grid_data.df['vsv'])
+    write_vtk(filename, points, elements, grid_data.df['vsv'], name='vsv')
