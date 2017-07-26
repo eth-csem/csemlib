@@ -14,93 +14,98 @@ model_dir = os.path.join(csemlib_directory, '..', 'regional_models')
 
 def _evaluate_csem_salvus(x, y, z, regions, **kwargs):
     # Default parameters
-    params = dict(eval_crust=False, eval_s20=False, eval_japan=True,
-                  eval_south_atlantic=False, eval_australia=False, eval_europe=False)
+    params = dict(eval_crust=True, eval_s20=True, eval_south_atlantic=True, eval_australia=True,
+                  eval_japan=True, eval_europe=True, eval_marmara_2017=True,
+                  eval_south_east_asia_2017=True, eval_iberia_2015=True, eval_iberia_2017=True,
+                  eval_north_atlantic_2013=True, eval_north_america=True)
     params.update(kwargs)
 
     grid_data = GridData(x, y, z, solver='salvus')
     grid_data.add_one_d_salvus(regions)
 
-    # Add s20
+    # Add s20rts
     if params['eval_s20']:
         s20 = S20rts()
         s20.eval_point_cloud_griddata(grid_data)
 
+    # Models without crust that must be added before adding the crust. -------------------------------------------------
+
+    # Add South Atlantic
     if params['eval_south_atlantic']:
-        mod = Ses3d(os.path.join(model_dir, 'south_atlantic_2013'), grid_data.components)
-        mod.eval_point_cloud_griddata(grid_data)
+        ses3d = Ses3d(os.path.join(model_dir, 'south_atlantic_2013'), grid_data.components)
+        ses3d.eval_point_cloud_griddata(grid_data)
 
-    # Evaluate regional ses3d models. Requires models to be present still hardcoded replace this with smtng better
+    # Add Australia
     if params['eval_australia']:
-        mod = Ses3d(os.path.join(model_dir, 'australia_2010'), grid_data.components)
-        mod.eval_point_cloud_griddata(grid_data)
+        ses3d = Ses3d(os.path.join(model_dir, 'australia_2010'), grid_data.components)
+        ses3d.eval_point_cloud_griddata(grid_data)
 
-    # Add crust
+    # Overwrite crustal values. ----------------------------------------------------------------------------------------
+
+    # Add Crust
     if params['eval_crust']:
         cst = Crust()
         cst.eval_point_cloud_grid_data(grid_data)
 
-    # Add Japan model on top of crust
-    if params['eval_japan']:
-        mod = Ses3d(os.path.join(model_dir, 'japan_2016'), grid_data.components)
-        mod.eval_point_cloud_griddata(grid_data)
+    # Add 3D models with crustal component. ----------------------------------------------------------------------------
 
-    # Add Europe model on top of crust
+    # Add Japan
+    if params['eval_japan']:
+        ses3d = Ses3d(os.path.join(model_dir, 'japan_2016'), grid_data.components)
+        ses3d.eval_point_cloud_griddata(grid_data)
+
+    # Add Europe
     if params['eval_europe']:
-        mod = Ses3d(os.path.join(model_dir, 'europe_2013'), grid_data.components)
-        mod.eval_point_cloud_griddata(grid_data)
+        ses3d = Ses3d(os.path.join(model_dir, 'europe_2013'), grid_data.components)
+        ses3d.eval_point_cloud_griddata(grid_data)
+
+    # Add Marmara
+    if params['eval_marmara_2017']:
+        ses3d = Ses3d(os.path.join(model_dir, 'marmara_2017'), grid_data.components)
+        ses3d.eval_point_cloud_griddata(grid_data)
+
+    # Add South-East Asia
+    if params['eval_south_east_asia_2017']:
+        ses3d = Ses3d(os.path.join(model_dir, 'south_east_asia_2017'), grid_data.components)
+        ses3d.eval_point_cloud_griddata(grid_data)
+
+    # Add Iberia 2015
+    if params['eval_iberia_2015']:
+        ses3d = Ses3d(os.path.join(model_dir, 'iberia_2015'), grid_data.components)
+        ses3d.eval_point_cloud_griddata(grid_data)
+
+    # Add Iberia 2017
+    if params['eval_iberia_2017']:
+        ses3d = Ses3d(os.path.join(model_dir, 'iberia_2017'), grid_data.components)
+        ses3d.eval_point_cloud_griddata(grid_data)
+
+    # Add North Atlantic 2013
+    if params['eval_north_atlantic_2013']:
+        ses3d = Ses3d(os.path.join(model_dir, 'north_atlantic_2013'), grid_data.components)
+        ses3d.eval_point_cloud_griddata(grid_data)
+
+    # Add North America 2017
+    if params['eval_north_america']:
+        ses3d = Ses3d(os.path.join(model_dir, 'north_america_2017'), grid_data.components)
+        ses3d.eval_point_cloud_griddata(grid_data)
 
     return grid_data
 
 
-def add_csem_discontinuous(salvus_mesh, **kwargs):
+def add_csem_to_continuous_exodus(filename, **kwargs):
     # Default parameters
-    params = dict(eval_crust=False, eval_s20=False)
+    params = dict()
     params.update(kwargs)
 
-    # Get element centroids
-    if salvus_mesh.ndim == 2:
-        x_c, y_c = salvus_mesh.get_element_centroid().T
-        z_c = np.zeros_like(x_c)
-    else:
-        x_c, y_c, z_c = salvus_mesh.get_element_centroid().T
-
-    # Get region corresponding to element centroid
-    rad_c = np.sqrt(x_c ** 2 + y_c ** 2 + z_c ** 2) * 6371.0 / salvus_mesh.scale
-    regions = one_dimensional.get_region(rad_c)
-
-    for i in np.arange(salvus_mesh.nodes_per_element):
-        print('Adding CSEM to node {} out of {}'.format(i+1, salvus_mesh.nodes_per_element))
-        if salvus_mesh.ndim == 2:
-            x, y = salvus_mesh.points[salvus_mesh.connectivity[:, i]].T * 6371.0 / salvus_mesh.scale
-            z = np.zeros_like(x)
-        else:
-            x, y, z = salvus_mesh.points[salvus_mesh.connectivity[:, i]].T * 6371.0 / salvus_mesh.scale
-        grid_data = _evaluate_csem_salvus(x, y, z, regions, **params)
-
-        for component in grid_data.components:
-            # Convert to m/s
-            vals = grid_data.get_component(component) * 1000
-            salvus_mesh.attach_field('%s_%d' % (component.upper(), i), vals)
-
-    # Attach fluid field
-    salvus_mesh.attach_field('fluid', np.array(regions == 1, dtype=int))
-
-    return salvus_mesh
-
-
-def add_csem_continuous(salvus_mesh, **kwargs):
-    # Default parameters
-    params = dict(eval_crust=False, eval_s20=False)
-    params.update(kwargs)
+    salvus_mesh = ExodusReader(filename, mode='a')
 
     # 2D case
     if salvus_mesh.ndim == 2:
-        x, y = salvus_mesh.points.T * 6371.0 / salvus_mesh.scale
+        x, y = salvus_mesh.points.T / 1000.0
         z = np.zeros_like(x)
     # 3D case
     elif salvus_mesh.ndim == 3:
-        x, y, z = salvus_mesh.points.T * 6371.0 / salvus_mesh.scale
+        x, y, z = salvus_mesh.points.T / 1000.0
     else:
         raise ValueError('Incorrect amount of dimensions in Salvus mesh file')
 
@@ -114,16 +119,17 @@ def add_csem_continuous(salvus_mesh, **kwargs):
         vals = grid_data.get_component(component) * 1000
         salvus_mesh.attach_field('%s' % component.upper(), vals)
 
-    return salvus_mesh
+    salvus_mesh.close()
 
 
 def add_csem_to_discontinuous_exodus(filename, **kwargs):
     # Default parameters
-    params = dict(eval_crust=False, eval_s20=False)
+    params = dict()
     params.update(kwargs)
 
     salvus_mesh = ExodusReader(filename, mode='a')
 
+    print(salvus_mesh)
     # Get element centroids
     if salvus_mesh.ndim == 2:
         x_c, y_c = salvus_mesh.get_element_centroid().T
