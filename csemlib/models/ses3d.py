@@ -269,7 +269,7 @@ class Ses3d(object):
 
         # if the ses3d model has multiple regions, slightly shift near boundaries to the upper region.
         if num_regions > 1:
-            eps = 0.001
+            eps = 0.05
             for reg in range(num_regions)[1:]:
                 top = region_info['region_{}_top'.format(reg)]
                 relative_shift = (top + 2 * eps) / top
@@ -319,7 +319,7 @@ class Ses3d(object):
             rad_regions = _read_multi_region_file(data)
 
         # slightly shift nodes at layer boundaries such that spherical slices through a ses3d layer boundary look clean
-        eps = 0.001
+        eps = 0.05
         for rad in rad_regions[region]:
             relative_shift = (rad + eps) / rad
             nodes_to_be_shifted = (np.abs(ses3d_dmn.df['r'] - rad) < eps)

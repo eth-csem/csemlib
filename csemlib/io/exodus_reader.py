@@ -51,7 +51,7 @@ class ExodusReader(object):
     def attach_field(self, name, values):
         """
         Write values with name to exodus file
-        :param name: name of the variable to be writte
+        :param name: name of the variable to be written
         :param values: numpy array of values to be written
         :return:
         """
@@ -69,6 +69,34 @@ class ExodusReader(object):
         else:
             raise ValueError('Shape matches neither the nodes nor the '
                              'elements')
+
+    def get_element_field(self, name):
+        """
+        Get values from elemental field.
+        :param name: name of the variable to be retrieved
+        :return element field values:
+        """
+
+        assert self.mode in ['r', 'a'], "Attach field option only available in mode 'r' or 'a'"
+        assert name in self.elem_var_names, "Could not find the requested field"
+
+        values = self.e.get_element_variable_values(blockId=1, name=name, step=1)
+        return values
+
+    def get_nodal_field(self, name):
+        """
+        Get values from nodal field.
+        :param name: name of the variable to be retrieved
+        :return nodal field values:
+        """
+
+        assert self.mode in ['r', 'a'], "Attach field option only available in mode 'r' or 'a'"
+        assert name in self.e.get_node_variable_names(), "Could not find the requested field"
+
+        values = self.e.get_node_variable_values(name=name, step=1)
+        return values
+
+
     @property
     def npoint(self):
          """
