@@ -1,0 +1,26 @@
+geometry:
+  rmin: 4951.0
+  rmax: 6371.0
+  cmin: 40.0
+  cmax: 115.0
+  lmin: -120.0
+  lmax: 0.0
+  rotation: True
+  rot_x: 0.766044
+  rot_y: 0.642787
+  rot_z: 0.0
+  rot_angle: -30.0
+component_type: perturbation_to_3D
+components:
+  - rho
+  - vph
+  - vpv
+  - vsh
+  - vsv
+taper: True
+region_info:
+  num_regions: 1
+  region_0_top: 6371.0
+  region_0_bottom: 4931.0
+model: north_america_2017
+reference: 'This is Lion Krischers North America and North Atlantic model, still unpublished.'

@@ -1,0 +1,28 @@
+geometry:
+  rmin: 5871.0
+  rmax: 6371.0
+  cmin: 47.0
+  cmax: 56.0
+  lmin: 23.0
+  lmax: 43.0
+  rotation: False
+  rot_x: 0
+  rot_y: 0
+  rot_z: 0
+  rot_angle: 0
+component_type: perturbation_to_3D
+region_info:
+  num_regions: 2
+  region_0_top: 6266.0
+  region_0_bottom: 5871.0
+  region_1_top: 6371.0
+  region_1_bottom: 6266.0
+components:
+  - rho
+  - vph
+  - vpv
+  - vsh
+  - vsv
+model: marmara_2017
+taper: False
+reference: 'This model is the full-waveform model by Yesim Cubuk, based on an expanded dataset for western Anatolia and the initial model from Fichtner et al. (2013). At this point (March 2017), these results are not yet published.'

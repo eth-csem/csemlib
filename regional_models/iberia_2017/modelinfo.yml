@@ -1,0 +1,28 @@
+geometry:
+  rmin: 5001.0
+  rmax: 6371.0
+  cmin: 90.0
+  cmax: 125.0
+  lmin: -22.0
+  lmax: 30.0
+  rotation: True
+  rot_x: 0
+  rot_y: 1
+  rot_z: 0
+  rot_angle: -57.5
+component_type: perturbation_to_3D
+components:
+  - rho
+  - vph
+  - vpv
+  - vsh
+  - vsv
+taper: True
+region_info:
+  num_regions: 2
+  region_0_top: 6371.0
+  region_0_bottom: 5801.0
+  region_1_top: 5801.0
+  region_1_bottom: 5001.0
+model: iberia_2017
+reference: 'The is the western Mediterranean model of Fichtner & Villasenor (2017, still unpublished). A taper is applied to extract the upper 60 km. The initial model is the Europe model of Fichtner et al. (2013). This model is the complement of iberia_2015, which covers depths below 60 km, and also used Fichtner et al. (2013) as initial model.'

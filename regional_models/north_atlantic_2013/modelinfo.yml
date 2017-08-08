@@ -1,0 +1,30 @@
+geometry:
+  rmin: 4951.0
+  rmax: 6371.0
+  cmin: 55.0
+  cmax: 115.0
+  lmin: -30.0
+  lmax: 30.0
+  rotation: True
+  rot_x: 0
+  rot_y: 1
+  rot_z: 0
+  rot_angle: -57.5
+component_type: perturbation_to_3D
+components:
+  - rho
+  - vph
+  - vpv
+  - vsh
+  - vsv
+taper: True
+region_info:
+  num_regions: 3
+  region_0_top: 6371.0
+  region_0_bottom: 6021.0
+  region_1_top: 6021.0
+  region_1_bottom: 5701.0
+  region_2_top: 5701.0
+  region_2_bottom: 4951.0
+model: north_atlantic_2013
+reference: 'This is the lower part of the North Atlantic model by Florian Rickers (Rickers et al., 2013). It is the depth continuation of the 2013 Europe model.'

@@ -1,0 +1,26 @@
+geometry:
+  rmin: 6071.0
+  rmax: 6371.0
+  cmin: 77.0
+  cmax: 118.0
+  lmin: 87.0
+  lmax: 163.0
+  rotation: False
+  rot_x: 0.0
+  rot_y: 1.0
+  rot_z: 0.0
+  rot_angle: 0.0
+component_type: perturbation_to_3D
+components:
+  - rho
+  - vph
+  - vpv
+  - vsh
+  - vsv
+taper: False
+region_info:
+  num_regions: 1
+  region_0_top: 6371.0
+  region_0_bottom: 6071.0
+model: south_east_asia_2017
+reference: 'This is the full-waveform inversion by Erdinc Saygin for South-East Asia, mostly using ambient noise correlations. Still unpublished.'
