@@ -1,0 +1,28 @@
+geometry:
+  rmin: 5001.0
+  rmax: 6371.0
+  cmin: 90.0
+  cmax: 125.0
+  lmin: -22.0
+  lmax: 30.0
+  rotation: True
+  rot_x: 0
+  rot_y: 1
+  rot_z: 0
+  rot_angle: -57.5
+component_type: perturbation_to_3D
+components:
+  - rho
+  - vph
+  - vpv
+  - vsh
+  - vsv
+taper: True
+region_info:
+  num_regions: 2
+  region_0_top: 6371.0
+  region_0_bottom: 5801.0
+  region_1_top: 5801.0
+  region_1_bottom: 5001.0
+model: iberia_2015
+reference: 'The is the western Mediterranean model of Fichtner & Villasenor (EPSL, 2015). The updates are with respect to the initial model, which is the European model of Fichtner et al. (2013). Since the upper 60 km were later updated, based on the same initial model (iberia_2017), the upper 60 km are tapered.'
