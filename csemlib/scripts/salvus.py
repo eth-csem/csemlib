@@ -12,7 +12,7 @@ csemlib_directory, _ = os.path.split(os.path.split(__file__)[0])
 model_dir = os.path.join(csemlib_directory, '..', 'regional_models')
 
 
-def _evaluate_csem_salvus(x, y, z, regions, **kwargs):
+def _evaluate_csem_salvus(x, y, z, regions, regions_2=None, **kwargs):
     # Default parameters
     params = dict(eval_crust=True, eval_s20=True, eval_south_atlantic=True, eval_australia=True,
                   eval_japan=True, eval_europe=True, eval_marmara_2017=True,
@@ -21,7 +21,11 @@ def _evaluate_csem_salvus(x, y, z, regions, **kwargs):
     params.update(kwargs)
 
     grid_data = GridData(x, y, z, solver='salvus')
-    grid_data.add_one_d_salvus(regions)
+
+    if regions_2 is not None:
+        grid_data.add_one_d_salvus_continuous(region_min_eps=regions, region_plus_eps=regions_2)
+    else:
+        grid_data.add_one_d_salvus_discontinuous(regions)
 
     # Add s20rts
     if params['eval_s20']:
@@ -111,9 +115,14 @@ def add_csem_to_continuous_exodus(filename, **kwargs):
 
     rad = np.sqrt(x ** 2 + y ** 2 + z ** 2)
 
-    # Get region corresponding to element centroid
-    regions = one_dimensional.get_region(rad)
-    grid_data = _evaluate_csem_salvus(x, y, z, regions, **params)
+    # get regions +/- eps to average on velocities on the discontinuities
+    epsilon = 0.0001
+    rad_plus_eps = rad + epsilon
+    rad_minus_eps = rad - epsilon
+    regions_plus_eps = one_dimensional.get_region(rad_plus_eps)
+    regions_min_eps = one_dimensional.get_region(rad_minus_eps)
+
+    grid_data = _evaluate_csem_salvus(x, y, z, regions=regions_plus_eps, regions_2=regions_min_eps, **params)
 
     for component in grid_data.components:
         vals = grid_data.get_component(component) * 1000
@@ -129,7 +138,6 @@ def add_csem_to_discontinuous_exodus(filename, **kwargs):
 
     salvus_mesh = ExodusReader(filename, mode='a')
 
-    print(salvus_mesh)
     # Get element centroids
     if salvus_mesh.ndim == 2:
         x_c, y_c = salvus_mesh.get_element_centroid().T

@@ -116,13 +116,14 @@ class GridData:
         for param in one_d_parameters:
             del self.df[param]
 
-    def add_one_d_salvus(self, regions, add_to_components=True, initialize_with_one=False):
+    def add_one_d_salvus_discontinuous(self, regions, add_to_components=True, initialize_with_one=False):
         if initialize_with_one:
             one_d_rho = one_d_vpv = one_d_vph = one_d_vsv = one_d_vsh = one_eta = one_Qmu = one_Qkappa\
                 = np.ones_like(self.df['r'])
         else:
             one_d_rho, one_d_vpv, one_d_vph, one_d_vsv, one_d_vsh, one_eta, one_Qmu, one_Qkappa = \
                 csem_1d_background_eval_point_cloud_region_specified(self.df['r'], regions)
+
 
         self.df['one_d_rho'] = one_d_rho
         self.df['one_d_vpv'] = one_d_vpv
@@ -132,6 +133,47 @@ class GridData:
         self.df['one_d_eta'] = one_eta
         self.df['one_d_Qmu'] = one_Qmu
         self.df['one_d_Qkappa'] = one_Qkappa
+
+        if add_to_components:
+            self.set_component('rho', self.df['one_d_rho'])
+            self.set_component('vsh', self.df['one_d_vsh'])
+            self.set_component('vsv', self.df['one_d_vsv'])
+            self.set_component('vph', self.df['one_d_vph'])
+            self.set_component('vpv', self.df['one_d_vpv'])
+            self.set_component('eta', self.df['one_d_eta'])
+            self.set_component('Qmu', self.df['one_d_Qmu'])
+            self.set_component('QKappa', self.df['one_d_Qkappa'])
+
+    def add_one_d_salvus_continuous(self, region_plus_eps, region_min_eps, add_to_components=True, initialize_with_one=False):
+        if initialize_with_one:
+            one_d_rho = one_d_vpv = one_d_vph = one_d_vsv = one_d_vsh = one_eta = one_Qmu = one_Qkappa\
+                = np.ones_like(self.df['r'])
+        else:
+            # Average the points that lie on the discontinuities
+            one_d_rho_peps, one_d_vpv_peps, one_d_vph_peps, one_d_vsv_peps, \
+            one_d_vsh_peps, one_d_eta_peps, one_d_Qmu_peps, one_d_Qkappa_peps = \
+                csem_1d_background_eval_point_cloud_region_specified(self.df['r'], region_plus_eps)
+
+            one_d_rho, one_d_vpv, one_d_vph, one_d_vsv, one_d_vsh, one_d_eta, one_d_Qmu, one_d_Qkappa = \
+                csem_1d_background_eval_point_cloud_region_specified(self.df['r'], region_plus_eps)
+            one_d_rho = (one_d_rho + one_d_rho_peps) / 2
+            one_d_vpv = (one_d_vpv + one_d_vpv_peps) / 2
+            one_d_vph = (one_d_vph + one_d_vph_peps) / 2
+            one_d_vsv = (one_d_vsv + one_d_vsv_peps) / 2
+            one_d_vsh = (one_d_vsh + one_d_vsh_peps) / 2
+            one_d_eta = (one_d_eta + one_d_eta_peps) / 2
+            one_d_Qmu = (one_d_Qmu + one_d_Qmu_peps) / 2
+            one_d_Qkappa = (one_d_Qkappa + one_d_Qkappa_peps) / 2
+
+
+        self.df['one_d_rho'] = one_d_rho
+        self.df['one_d_vpv'] = one_d_vpv
+        self.df['one_d_vph'] = one_d_vph
+        self.df['one_d_vsv'] = one_d_vsv
+        self.df['one_d_vsh'] = one_d_vsh
+        self.df['one_d_eta'] = one_d_eta
+        self.df['one_d_Qmu'] = one_d_Qmu
+        self.df['one_d_Qkappa'] = one_d_Qkappa
 
         if add_to_components:
             self.set_component('rho', self.df['one_d_rho'])
