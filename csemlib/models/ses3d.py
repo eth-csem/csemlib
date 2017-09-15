@@ -223,7 +223,6 @@ class Ses3d(object):
         :return: No return. GridData is manipulated internally.
         """
 
-        print('Evaluating SES3D model:', self.model_info['model'])
         interp_method = interp_method or self.interp_method
 
         # Loop through all the ses3d subdomains.
@@ -233,6 +232,9 @@ class Ses3d(object):
             ses3d_dmn = self.extract_ses3d_dmn(GridData, region)
             if len(ses3d_dmn) == 0:
                 continue
+
+            if region == 0:
+                print('Evaluating SES3D model: {}'.format(self.model_info['model']))
 
             # Fill the GridData structure self.grid_data_ses3d. This is the GridData structure with the grid and the values of the ses3d model.
             self.init_grid_data_hdf5(region)

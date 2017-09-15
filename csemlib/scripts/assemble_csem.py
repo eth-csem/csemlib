@@ -105,6 +105,7 @@ def depth_slice_to_vtk(depth, resolution, filename=None):
     grid_data = assemble_csem(grid_data)
 
     x, y, z = grid_data.get_coordinates().T
+
     # Make vtk file.
     elements = triangulate(x, y, z)
     points = np.array((x, y, z)).T

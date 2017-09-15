@@ -8,9 +8,8 @@ def cli():
 @cli.command()
 @click.option('--filename',
               help='Salvus continuous exodus file.')
-@click.option('--verbose/--quiet', default=True)
-def add_continuous_csem_salvus(filename, verbose):
-    """ Adds discontinuous csem to a salvus mesh file"""
+def add_continuous_csem_salvus(filename):
+    """ Adds CSEM to a continuous salvus mesh file"""
     from .salvus import add_csem_to_continuous_exodus
 
     add_csem_to_continuous_exodus(filename=filename, eval_crust=True, eval_s20=True, eval_south_atlantic=True,
@@ -21,9 +20,8 @@ def add_continuous_csem_salvus(filename, verbose):
 @cli.command()
 @click.option('--filename', prompt='Enter filename',
               help='Salvus discontinuous exodus file.')
-@click.option('--verbose/--quiet', default=True)
-def add_discontinuous_csem_salvus(filename, verbose):
-    """ Adds discontinuous csem to a salvus mesh file"""
+def add_discontinuous_csem_salvus(filename):
+    """ Adds CSEM to a discontinuous salvus mesh file"""
     from .salvus import add_csem_to_discontinuous_exodus
 
     add_csem_to_discontinuous_exodus(filename=filename, eval_crust=True, eval_s20=True, eval_south_atlantic=True,

@@ -13,6 +13,14 @@ model_dir = os.path.join(csemlib_directory, '..', 'regional_models')
 
 
 def _evaluate_csem_salvus(x, y, z, regions, regions_2=None, **kwargs):
+    """
+    :param x: np array of x-coordinates in kilometers
+    :param y: np array of y-coordinates in kilometers
+    :param z: np array of y-coordinates in kilometers
+    :param regions: specifies the region where the point(x,y,z) falls into in the one dimensional Earth model.
+    :param regions_2: secondary region used for averaging over discontinuities
+    :return: a grid_data object with the required information contained on it.
+    """
     # Default parameters
     params = dict(eval_crust=True, eval_s20=True, eval_south_atlantic=True, eval_australia=True,
                   eval_japan=True, eval_europe=True, eval_marmara_2017=True,
@@ -97,6 +105,12 @@ def _evaluate_csem_salvus(x, y, z, regions, regions_2=None, **kwargs):
 
 
 def add_csem_to_continuous_exodus(filename, **kwargs):
+    """
+    Adds CSEM to a continuous Salvus mesh
+    :param filename: salvus mesh file
+    :param kwargs:
+    :return:
+    """
     # Default parameters
     params = dict()
     params.update(kwargs)
@@ -132,6 +146,12 @@ def add_csem_to_continuous_exodus(filename, **kwargs):
 
 
 def add_csem_to_discontinuous_exodus(filename, **kwargs):
+    """
+    Adds CSEM to a discontinuous Salvus mesh
+    :param filename: salvus mesh file
+    :param kwargs:
+    :return:
+    """
     # Default parameters
     params = dict()
     params.update(kwargs)
