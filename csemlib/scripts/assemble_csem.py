@@ -1,4 +1,5 @@
 import numpy as np
+import os
 
 from csemlib.background.fibonacci_grid import FibonacciGrid
 from csemlib.background.grid_data import GridData
@@ -6,9 +7,9 @@ from csemlib.models.crust import Crust
 from csemlib.models.model import write_vtk, triangulate
 from csemlib.models.s20rts import S20rts
 from csemlib.models.ses3d import Ses3d
+from csemlib.models.specfem import Specfem
 from csemlib.io.readers import read_from_grid
 
-import os
 
 csemlib_directory, _ = os.path.split(os.path.split(__file__)[0])
 model_dir = os.path.join(csemlib_directory, '..', 'regional_models')
@@ -19,7 +20,7 @@ def assemble_csem(grid_data, **kwargs):
     params = dict(eval_crust=True, eval_s20=True, eval_south_atlantic=True, eval_australia=True,
                   eval_japan=True, eval_europe=True, eval_marmara_2017=True,
                   eval_south_east_asia_2017=True, eval_iberia_2015=True, eval_iberia_2017=True,
-                  eval_north_atlantic_2013=True, eval_north_america=True)
+                  eval_north_atlantic_2013=True, eval_north_america=True, eval_global_1=True)
     params.update(kwargs)
 
     # Initialise with CSEM 1D background model.
@@ -90,6 +91,11 @@ def assemble_csem(grid_data, **kwargs):
     if params['eval_north_america']:
         ses3d = Ses3d(os.path.join(model_dir, 'north_america_2017'), grid_data.components)
         ses3d.eval_point_cloud_griddata(grid_data)
+
+    # Add Mike's global update
+    if params['eval_global_1']:
+        mikes_update = Specfem()
+        mikes_update.eval_point_cloud_griddata(grid_data)
 
     return grid_data
     # Generate output. -------------------------------------------------------------------------------------------------
