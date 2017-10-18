@@ -8,7 +8,7 @@ def cli():
 regions_dict=dict(eval_crust=True, eval_s20=True, eval_south_atlantic=True, eval_australia=True,
                   eval_japan=True, eval_europe=True, eval_marmara_2017=True,
                   eval_south_east_asia_2017=True, eval_iberia_2015=True, eval_iberia_2017=True,
-                  eval_north_atlantic_2013=True, eval_north_america=False, eval_global_1=True)
+                  eval_north_atlantic_2013=True, eval_north_america=True, eval_global_1=True)
 
 #=======================================================================================================================
 #- Add values to a continuous Salvus mesh. -----------------------------------------------------------------------------
