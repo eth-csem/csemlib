@@ -7,12 +7,13 @@ from ..background.grid_data import GridData
 from ..models.s20rts import S20rts
 from ..models.crust import Crust
 from ..models import one_dimensional
+from csemlib.models.specfem import Specfem
 
 csemlib_directory, _ = os.path.split(os.path.split(__file__)[0])
 model_dir = os.path.join(csemlib_directory, '..', 'regional_models')
 
 
-def _evaluate_csem_salvus(x, y, z, regions, regions_2=None, **kwargs):
+def _evaluate_csem_salvus(x, y, z, regions_dict, regions, regions_2=None):
     """
     :param x: np array of x-coordinates in kilometers
     :param y: np array of y-coordinates in kilometers
@@ -21,12 +22,6 @@ def _evaluate_csem_salvus(x, y, z, regions, regions_2=None, **kwargs):
     :param regions_2: secondary region used for averaging over discontinuities
     :return: a grid_data object with the required information contained on it.
     """
-    # Default parameters
-    params = dict(eval_crust=True, eval_s20=True, eval_south_atlantic=True, eval_australia=True,
-                  eval_japan=True, eval_europe=True, eval_marmara_2017=True,
-                  eval_south_east_asia_2017=True, eval_iberia_2015=True, eval_iberia_2017=True,
-                  eval_north_atlantic_2013=True, eval_north_america=True)
-    params.update(kwargs)
 
     grid_data = GridData(x, y, z, solver='salvus')
 
@@ -36,84 +31,86 @@ def _evaluate_csem_salvus(x, y, z, regions, regions_2=None, **kwargs):
         grid_data.add_one_d_salvus_discontinuous(regions)
 
     # Add s20rts
-    if params['eval_s20']:
+    if regions_dict['eval_s20']:
         s20 = S20rts()
         s20.eval_point_cloud_griddata(grid_data)
 
     # Models without crust that must be added before adding the crust. -------------------------------------------------
 
     # Add South Atlantic
-    if params['eval_south_atlantic']:
+    if regions_dict['eval_south_atlantic']:
         ses3d = Ses3d(os.path.join(model_dir, 'south_atlantic_2013'), grid_data.components)
         ses3d.eval_point_cloud_griddata(grid_data)
 
     # Add Australia
-    if params['eval_australia']:
+    if regions_dict['eval_australia']:
         ses3d = Ses3d(os.path.join(model_dir, 'australia_2010'), grid_data.components)
         ses3d.eval_point_cloud_griddata(grid_data)
 
     # Overwrite crustal values. ----------------------------------------------------------------------------------------
 
     # Add Crust
-    if params['eval_crust']:
+    if regions_dict['eval_crust']:
         cst = Crust()
         cst.eval_point_cloud_grid_data(grid_data)
 
     # Add 3D models with crustal component. ----------------------------------------------------------------------------
 
     # Add Japan
-    if params['eval_japan']:
+    if regions_dict['eval_japan']:
         ses3d = Ses3d(os.path.join(model_dir, 'japan_2016'), grid_data.components)
         ses3d.eval_point_cloud_griddata(grid_data)
 
     # Add Europe
-    if params['eval_europe']:
+    if regions_dict['eval_europe']:
         ses3d = Ses3d(os.path.join(model_dir, 'europe_2013'), grid_data.components)
         ses3d.eval_point_cloud_griddata(grid_data)
 
     # Add Marmara
-    if params['eval_marmara_2017']:
+    if regions_dict['eval_marmara_2017']:
         ses3d = Ses3d(os.path.join(model_dir, 'marmara_2017'), grid_data.components)
         ses3d.eval_point_cloud_griddata(grid_data)
 
     # Add South-East Asia
-    if params['eval_south_east_asia_2017']:
+    if regions_dict['eval_south_east_asia_2017']:
         ses3d = Ses3d(os.path.join(model_dir, 'south_east_asia_2017'), grid_data.components)
         ses3d.eval_point_cloud_griddata(grid_data)
 
     # Add Iberia 2015
-    if params['eval_iberia_2015']:
+    if regions_dict['eval_iberia_2015']:
         ses3d = Ses3d(os.path.join(model_dir, 'iberia_2015'), grid_data.components)
         ses3d.eval_point_cloud_griddata(grid_data)
 
     # Add Iberia 2017
-    if params['eval_iberia_2017']:
+    if regions_dict['eval_iberia_2017']:
         ses3d = Ses3d(os.path.join(model_dir, 'iberia_2017'), grid_data.components)
         ses3d.eval_point_cloud_griddata(grid_data)
 
     # Add North Atlantic 2013
-    if params['eval_north_atlantic_2013']:
+    if regions_dict['eval_north_atlantic_2013']:
         ses3d = Ses3d(os.path.join(model_dir, 'north_atlantic_2013'), grid_data.components)
         ses3d.eval_point_cloud_griddata(grid_data)
 
     # Add North America 2017
-    if params['eval_north_america']:
+    if regions_dict['eval_north_america']:
         ses3d = Ses3d(os.path.join(model_dir, 'north_america_2017'), grid_data.components)
         ses3d.eval_point_cloud_griddata(grid_data)
+
+    # Add Mike's global update
+    if regions_dict['eval_global_1']:
+        mikes_update = Specfem()
+        mikes_update.eval_point_cloud_griddata(grid_data)
 
     return grid_data
 
 
-def add_csem_to_continuous_exodus(filename, **kwargs):
+def add_csem_to_continuous_exodus(filename, regions_dict):
     """
     Adds CSEM to a continuous Salvus mesh
     :param filename: salvus mesh file
     :param kwargs:
     :return:
     """
-    # Default parameters
-    params = dict()
-    params.update(kwargs)
 
     salvus_mesh = ExodusReader(filename, mode='a')
 
@@ -136,7 +133,7 @@ def add_csem_to_continuous_exodus(filename, **kwargs):
     regions_plus_eps = one_dimensional.get_region(rad_plus_eps)
     regions_min_eps = one_dimensional.get_region(rad_minus_eps)
 
-    grid_data = _evaluate_csem_salvus(x, y, z, regions=regions_plus_eps, regions_2=regions_min_eps, **params)
+    grid_data = _evaluate_csem_salvus(x, y, z, regions_dict, regions=regions_plus_eps, regions_2=regions_min_eps)
 
     for component in grid_data.components:
         vals = grid_data.get_component(component) * 1000
@@ -145,16 +142,13 @@ def add_csem_to_continuous_exodus(filename, **kwargs):
     salvus_mesh.close()
 
 
-def add_csem_to_discontinuous_exodus(filename, **kwargs):
+def add_csem_to_discontinuous_exodus(filename, regions_dict):
     """
     Adds CSEM to a discontinuous Salvus mesh
     :param filename: salvus mesh file
     :param kwargs:
     :return:
     """
-    # Default parameters
-    params = dict()
-    params.update(kwargs)
 
     salvus_mesh = ExodusReader(filename, mode='a')
 
@@ -179,7 +173,7 @@ def add_csem_to_discontinuous_exodus(filename, **kwargs):
             z = np.zeros_like(x)
         else:
             x, y, z = salvus_mesh.points[salvus_mesh.connectivity[:, i]].T / 1000.0
-        grid_data = _evaluate_csem_salvus(x, y, z, regions, **params)
+        grid_data = _evaluate_csem_salvus(x, y, z, regions_dict, regions)
 
         for component in grid_data.components:
             # Convert to m/s

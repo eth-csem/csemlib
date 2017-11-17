@@ -93,6 +93,7 @@ class Specfem(object):
         """
         specfem_dmn = self.extract_specfem_dmn(GridData)
 
+        print('Evaluating 1st global update')
 
         if self.interp_method == 'nearest_neighbour':
             print('Performing nearest neighbour interpolation')
