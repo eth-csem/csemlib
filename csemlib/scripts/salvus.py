@@ -14,6 +14,7 @@ model_dir = os.path.join(csemlib_directory, '..', 'regional_models')
 
 
 def _evaluate_csem_salvus(x, y, z, regions_dict, regions, regions_2=None):
+
     """
     :param x: np array of x-coordinates in kilometers
     :param y: np array of y-coordinates in kilometers
@@ -104,14 +105,14 @@ def _evaluate_csem_salvus(x, y, z, regions_dict, regions, regions_2=None):
     return grid_data
 
 
-def add_csem_to_continuous_exodus(filename, regions_dict):
+def add_csem_to_continuous_exodus(filename, regions_dict, with_topography=False):
     """
     Adds CSEM to a continuous Salvus mesh
     :param filename: salvus mesh file
     :param kwargs:
     :return:
     """
-
+    # Default parameters
     salvus_mesh = ExodusReader(filename, mode='a')
 
     # 2D case
@@ -124,7 +125,16 @@ def add_csem_to_continuous_exodus(filename, regions_dict):
     else:
         raise ValueError('Incorrect amount of dimensions in Salvus mesh file')
 
+    # compute radius
     rad = np.sqrt(x ** 2 + y ** 2 + z ** 2)
+
+    if with_topography:
+        # get 1D_radius (normalized from 0 to 1)
+        rad_1D = salvus_mesh.get_nodal_field("radius_1D")
+        r_earth = 6371.0
+        x[rad > 0] = x[rad > 0] * r_earth * rad_1D[rad > 0] / rad[rad > 0]
+        y[rad > 0] = y[rad > 0] * r_earth * rad_1D[rad > 0] / rad[rad > 0]
+        z[rad > 0] = z[rad > 0] * r_earth * rad_1D[rad > 0] / rad[rad > 0]
 
     # get regions +/- eps to average on velocities on the discontinuities
     epsilon = 0.0001
@@ -173,6 +183,7 @@ def add_csem_to_discontinuous_exodus(filename, regions_dict):
             z = np.zeros_like(x)
         else:
             x, y, z = salvus_mesh.points[salvus_mesh.connectivity[:, i]].T / 1000.0
+
         grid_data = _evaluate_csem_salvus(x, y, z, regions_dict, regions)
 
         for component in grid_data.components:

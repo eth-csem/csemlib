@@ -15,21 +15,28 @@ regions_dict=dict(eval_crust=True, eval_s20=True, eval_south_atlantic=True, eval
 #=======================================================================================================================
 
 @cli.command()
-@click.option('--filename', help='Salvus continuous exodus file.')
-
-def add_continuous_csem_salvus(filename):
+@click.option('--filename',
+              help="Salvus continuous exodus file.", required=True)
+@click.option('--with_topography',
+              help="Account for topography/ellipticity, requires 1D radius in in mesh",
+              is_flag=True)
+def add_continuous_csem_salvus(filename, with_topography):
     """ Adds CSEM to a continuous salvus mesh file"""
     from .salvus import add_csem_to_continuous_exodus
 
-    add_csem_to_continuous_exodus(filename=filename, regions_dict=regions_dict)
+    if with_topography:
+        print("Accounting for topography")
+
+    add_csem_to_continuous_exodus(filename=filename, regions_dict=regions_dict,
+                                  with_topography=with_topography)
 
 #=======================================================================================================================
 #- Add values to a discontinuous Salvus mesh. --------------------------------------------------------------------------
 #=======================================================================================================================
 
 @cli.command()
-@click.option('--filename', prompt='Enter filename', help='Salvus discontinuous exodus file.')
-
+@click.option('--filename', prompt='Enter filename', required=True,
+              help='Salvus discontinuous exodus file.')
 def add_discontinuous_csem_salvus(filename):
     """ Adds CSEM to a discontinuous salvus mesh file"""
     from .salvus import add_csem_to_discontinuous_exodus
