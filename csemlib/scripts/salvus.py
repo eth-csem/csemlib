@@ -99,7 +99,7 @@ def _evaluate_csem_salvus(x, y, z, regions_dict, regions, regions_2=None):
 
     # Add Mike's global update
     if regions_dict['eval_global_1']:
-        mikes_update = Specfem()
+        mikes_update = Specfem(interp_method="trilinear_interpolation")
         mikes_update.eval_point_cloud_griddata(grid_data)
 
     return grid_data
@@ -127,7 +127,6 @@ def add_csem_to_continuous_exodus(filename, regions_dict, with_topography=False)
 
     # compute radius
     rad = np.sqrt(x ** 2 + y ** 2 + z ** 2)
-
     if with_topography:
         # get 1D_radius (normalized from 0 to 1)
         rad_1D = salvus_mesh.get_nodal_field("radius_1D")
@@ -136,8 +135,8 @@ def add_csem_to_continuous_exodus(filename, regions_dict, with_topography=False)
         y[rad > 0] = y[rad > 0] * r_earth * rad_1D[rad > 0] / rad[rad > 0]
         z[rad > 0] = z[rad > 0] * r_earth * rad_1D[rad > 0] / rad[rad > 0]
 
-    # get regions +/- eps to average on velocities on the discontinuities
-    epsilon = 0.0001
+    # get regions +/- eps to average velocities on the discontinuities
+    epsilon = 0.001
     rad_plus_eps = rad + epsilon
     rad_minus_eps = rad - epsilon
     regions_plus_eps = one_dimensional.get_region(rad_plus_eps)
