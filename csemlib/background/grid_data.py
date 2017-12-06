@@ -154,8 +154,9 @@ class GridData:
             one_d_vsh_peps, one_d_eta_peps, one_d_Qmu_peps, one_d_Qkappa_peps = \
                 csem_1d_background_eval_point_cloud_region_specified(self.df['r'], region_plus_eps)
 
-            one_d_rho, one_d_vpv, one_d_vph, one_d_vsv, one_d_vsh, one_d_eta, one_d_Qmu, one_d_Qkappa = \
-                csem_1d_background_eval_point_cloud_region_specified(self.df['r'], region_plus_eps)
+            one_d_rho, one_d_vpv, one_d_vph, one_d_vsv, \
+            one_d_vsh, one_d_eta, one_d_Qmu, one_d_Qkappa = \
+                csem_1d_background_eval_point_cloud_region_specified(self.df['r'], region_min_eps)
             one_d_rho = (one_d_rho + one_d_rho_peps) / 2
             one_d_vpv = (one_d_vpv + one_d_vpv_peps) / 2
             one_d_vph = (one_d_vph + one_d_vph_peps) / 2
