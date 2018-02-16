@@ -24,9 +24,6 @@ def add_continuous_csem_salvus(filename, with_topography):
     """ Adds CSEM to a continuous salvus mesh file"""
     from .salvus import add_csem_to_continuous_exodus
 
-    if with_topography:
-        print("Accounting for topography")
-
     add_csem_to_continuous_exodus(filename=filename, regions_dict=regions_dict,
                                   with_topography=with_topography)
 

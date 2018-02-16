@@ -49,7 +49,7 @@ def _evaluate_csem_salvus(x, y, z, regions_dict, regions, regions_2=None):
         ses3d.eval_point_cloud_griddata(grid_data)
 
     # Overwrite crustal values. ----------------------------------------------------------------------------------------
-
+    #
     # Add Crust
     if regions_dict['eval_crust']:
         cst = Crust()
@@ -129,14 +129,15 @@ def add_csem_to_continuous_exodus(filename, regions_dict, with_topography=False)
     rad = np.sqrt(x ** 2 + y ** 2 + z ** 2)
     if with_topography:
         # get 1D_radius (normalized from 0 to 1)
+        print("Accounting for topography")
         rad_1D = salvus_mesh.get_nodal_field("radius_1D")
         r_earth = 6371.0
         x[rad > 0] = x[rad > 0] * r_earth * rad_1D[rad > 0] / rad[rad > 0]
         y[rad > 0] = y[rad > 0] * r_earth * rad_1D[rad > 0] / rad[rad > 0]
         z[rad > 0] = z[rad > 0] * r_earth * rad_1D[rad > 0] / rad[rad > 0]
-
+        rad = np.sqrt(x ** 2 + y ** 2 + z ** 2)
     # get regions +/- eps to average velocities on the discontinuities
-    epsilon = 0.001
+    epsilon = 0.5
     rad_plus_eps = rad + epsilon
     rad_minus_eps = rad - epsilon
     regions_plus_eps = one_dimensional.get_region(rad_plus_eps)
@@ -145,7 +146,10 @@ def add_csem_to_continuous_exodus(filename, regions_dict, with_topography=False)
     grid_data = _evaluate_csem_salvus(x, y, z, regions_dict, regions=regions_plus_eps, regions_2=regions_min_eps)
 
     for component in grid_data.components:
-        vals = grid_data.get_component(component) * 1000
+        if component == "eta":
+            vals = grid_data.get_component(component)
+        else:
+            vals = grid_data.get_component(component) * 1000.0
         salvus_mesh.attach_field('%s' % component.upper(), vals)
 
     salvus_mesh.close()
