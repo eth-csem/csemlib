@@ -146,7 +146,7 @@ class GridData:
 
     def add_one_d_salvus_continuous(self, region_plus_eps, region_min_eps, add_to_components=True, initialize_with_one=False):
         if initialize_with_one:
-            one_d_rho = one_d_vpv = one_d_vph = one_d_vsv = one_d_vsh = one_eta = one_Qmu = one_Qkappa\
+            one_d_rho = one_d_vpv = one_d_vph = one_d_vsv = one_d_vsh = one_d_eta = one_d_Qmu = one_d_Qkappa\
                 = np.ones_like(self.df['r'])
         else:
             # Average the points that lie on the discontinuities

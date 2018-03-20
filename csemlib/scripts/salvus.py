@@ -49,7 +49,6 @@ def _evaluate_csem_salvus(x, y, z, regions_dict, regions, regions_2=None):
         ses3d.eval_point_cloud_griddata(grid_data)
 
     # Overwrite crustal values. ----------------------------------------------------------------------------------------
-    #
     # Add Crust
     if regions_dict['eval_crust']:
         cst = Crust()
@@ -144,14 +143,13 @@ def add_csem_to_continuous_exodus(filename, regions_dict, with_topography=False)
     regions_min_eps = one_dimensional.get_region(rad_minus_eps)
 
     grid_data = _evaluate_csem_salvus(x, y, z, regions_dict, regions=regions_plus_eps, regions_2=regions_min_eps)
-
+    dimensionless_components = ["eta", "QKappa", "Qmu"]
     for component in grid_data.components:
-        if component == "eta":
+        if component in dimensionless_components:
             vals = grid_data.get_component(component)
         else:
             vals = grid_data.get_component(component) * 1000.0
         salvus_mesh.attach_field('%s' % component.upper(), vals)
-
     salvus_mesh.close()
 
 
@@ -188,10 +186,13 @@ def add_csem_to_discontinuous_exodus(filename, regions_dict):
             x, y, z = salvus_mesh.points[salvus_mesh.connectivity[:, i]].T / 1000.0
 
         grid_data = _evaluate_csem_salvus(x, y, z, regions_dict, regions)
-
+        dimensionless_components = ["eta", "QKappa", "Qmu"]
         for component in grid_data.components:
             # Convert to m/s
-            vals = grid_data.get_component(component) * 1000
+            if component in dimensionless_components:
+                vals = grid_data.get_component(component)
+            else:
+                vals = grid_data.get_component(component) * 1000
             salvus_mesh.attach_field('%s_%d' % (component.upper(), i), vals)
 
     # Attach fluid field
