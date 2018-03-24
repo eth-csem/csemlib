@@ -154,6 +154,43 @@ def add_csem_to_continuous_exodus(filename, regions_dict, with_topography=False)
 
     salvus_mesh.close()
 
+def add_s20_to_isotropic_exodus(filename, regions_dict, with_topography=False):
+    """
+    Adds s2- to a continuous Salvus mesh
+    :param filename: salvus mesh file
+    :param kwargs:
+    :return:
+    """
+    # Default parameters
+    salvus_mesh = ExodusReader(filename, mode='a')
+
+    # 2D case
+    if salvus_mesh.ndim == 2:
+        x, y = salvus_mesh.points.T / 1000.0
+        z = np.zeros_like(x)
+    # 3D case
+    elif salvus_mesh.ndim == 3:
+        x, y, z = salvus_mesh.points.T / 1000.0
+    else:
+        raise ValueError('Incorrect amount of dimensions in Salvus mesh file')
+
+    vp = salvus_mesh.get_nodal_field("VP")
+    vs = salvus_mesh.get_nodal_field("VS")
+
+    grid_data = GridData(x,y,z)
+    grid_data.set_component("vp", vp)
+    grid_data.set_component("vs", vs)
+
+    s20 = S20rts()
+    s20.eval_point_cloud_griddata(grid_data)
+
+    for component in grid_data.components:
+
+        vals = grid_data.get_component(component)
+        salvus_mesh.attach_field('%s' % component.upper(), vals)
+
+    salvus_mesh.close()
+
 
 def add_csem_to_discontinuous_exodus(filename, regions_dict):
     """
