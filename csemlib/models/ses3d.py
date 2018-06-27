@@ -312,23 +312,23 @@ class Ses3d(object):
         else:
             tolerance = 0.0
 
-        ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['r'] > region_info[bottom]]
-        ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['r'] <= region_info[top] + tolerance]
-
         # get radial layers for each region
         with io.open(os.path.join(self.directory, 'block_z'), 'rt') as fh:
             data = np.asanyarray(fh.readlines(), dtype=float)
             rad_regions = _read_multi_region_file(data)
 
         # slightly shift nodes at layer boundaries such that spherical slices through a ses3d layer boundary look clean
-        eps = 0.05
+        eps = 0.1
         for rad in rad_regions[region]:
-            relative_shift = (rad + eps) / rad
+            relative_shift = (rad + 2*eps) / rad
             nodes_to_be_shifted = (np.abs(ses3d_dmn.df['r'] - rad) < eps)
             ses3d_dmn.df['r'][nodes_to_be_shifted] *= relative_shift
             ses3d_dmn.df['x'][nodes_to_be_shifted] *= relative_shift
             ses3d_dmn.df['y'][nodes_to_be_shifted] *= relative_shift
             ses3d_dmn.df['z'][nodes_to_be_shifted] *= relative_shift
+
+        ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['r'] > region_info[bottom]]
+        ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['r'] <= region_info[top] + tolerance]
 
         # Rotate back to the actual physical domain.
         if geometry['rotation'] is True:
