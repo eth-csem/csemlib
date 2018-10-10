@@ -27,6 +27,19 @@ def add_continuous_csem_salvus(filename, with_topography):
     add_csem_to_continuous_exodus(filename=filename, regions_dict=regions_dict,
                                   with_topography=with_topography)
 
+@cli.command()
+@click.option('--filename',
+              help="Salvus continuous exodus file.", required=True)
+@click.option('--with_topography',
+              help="Account for topography/ellipticity, requires 1D radius in in mesh",
+              is_flag=True)
+def add_s20_to_isotropic_mesh(filename, with_topography):
+    """ Adds CSEM to a continuous salvus mesh file"""
+    from .salvus import add_s20_to_isotropic_exodus
+
+    add_s20_to_isotropic_exodus(filename=filename, regions_dict=regions_dict,
+                                  with_topography=with_topography)
+
 #=======================================================================================================================
 #- Add values to a discontinuous Salvus mesh. --------------------------------------------------------------------------
 #=======================================================================================================================

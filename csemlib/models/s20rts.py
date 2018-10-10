@@ -138,6 +138,9 @@ class S20rts(object):
         if 'vp' in s20rts_dmn.components:
             s20rts_dmn.df['vp'] *= (1 + vp_val)
 
+        if 'vs' in s20rts_dmn.components:
+            s20rts_dmn.df['vs'] *= (1 + dv)
+
         if 'vsv' in s20rts_dmn.components:
             s20rts_dmn.df['vsv'] *= (1 + dv)
 
