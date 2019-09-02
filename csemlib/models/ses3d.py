@@ -380,7 +380,9 @@ class Ses3d(object):
         tolerance = 0.0001
 
         print("Performing trilinear interpolation for SES3D model... This can be a little slow")
-        for idx in range(len(ses3d_dmn.df["r"]))[:]:
+        for idx in range(len(ses3d_dmn.df["r"])):
+            if idx % 5000 == 0:
+                print(np.round(idx/len(ses3d_dmn.df["r"])*100.0, 2), "%", end="\r", flush=True)
             colat = np.rad2deg(ses3d_dmn.df['c'].values[idx])
             lon = np.rad2deg(ses3d_dmn.df['l'].values[idx])
             rad = ses3d_dmn.df['r'].values[idx]
@@ -402,6 +404,7 @@ class Ses3d(object):
             if lon > np.max(unique_lons_region) or lon < np.min(unique_lons_region):
                 continue
 
+            # Find surrounding vertices
             colat_max = np.where(unique_colats_region - colat >= 0.0)[0][0]
             colat_min = np.where(unique_colats_region - colat < 0.0)[0][-1]
 
