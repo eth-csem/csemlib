@@ -72,3 +72,15 @@ def write_csem_depth_slice(depth, resolution, filename):
     depth_slice_to_vtk(depth, resolution, filename)
 
 
+#=======================================================================================================================
+#- Add values to a continuous SalvusV2 mesh. -----------------------------------------------------------------------------
+#=======================================================================================================================
+
+@cli.command()
+@click.option('--filename',
+              help="Salvus continuous exodus file.", required=True)
+def add_continuous_csem_salvusv2(filename):
+    """ Adds CSEM to a continuous salvusv2 mesh file"""
+    from .salvus import add_csem_to_salvusv2
+
+    add_csem_to_salvusv2(filename=filename, regions_dict=regions_dict)
