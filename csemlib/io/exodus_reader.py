@@ -62,8 +62,6 @@ class ExodusReader(object):
             self.e.put_element_variable_values(blockId=1, name=name, step=1, values=values)
 
         elif values.size == self.npoint:
-            idx = self.e.get_node_variable_names().index(name) + 1
-            self.e.put_node_variable_name(name, index=idx)
             self.e.put_node_variable_values(name, 1, values)
 
         else:
