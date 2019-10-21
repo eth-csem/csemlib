@@ -1,0 +1,26 @@
+geometry:
+  rmin: 5171.0
+  rmax: 6371.0
+  cmin: 78.0
+  cmax: 100.0
+  lmin: -17.0
+  lmax: 17.0
+  rotation: True
+  rot_x: 0.0
+  rot_y: 0.876216
+  rot_z: -0.481919
+  rot_angle: -42.0
+component_type: perturbation_to_3D
+components:
+  - rho
+  - vph
+  - vpv
+  - vsh
+  - vsv
+taper: True
+region_info:
+  num_regions: 1
+  region_0_top: 6371.0
+  region_0_bottom: 5171.0
+model: eastern_mediterranean_2019
+reference: 'This is Nienke Bloms Eastern Mediterranean model, still unpublished.'
