@@ -1,10 +1,10 @@
 TODO
 
-- incorporate Salvus_1 and Salvus_2 models
-- update code moved from the old csemlib/scripts into /scripts
-- check if GridData parameter 'solver' is really needed
-- in GridData rename the *salvus* functions as they are not specific to Salvus
-- write output in the IRIS Earth model format
+- D.P.: incorporate Salvus_1 and Salvus_2 models
+- D.P.: update code moved from the old csemlib/scripts into /scripts
+- D.P.: check if GridData parameter 'solver' is really needed
+- D.P.: in GridData rename the *salvus* functions as they are not specific to Salvus
+- A.F.: write output in the IRIS Earth model format
 
 
 DONE
@@ -18,5 +18,5 @@ DONE
 QUESTIONS
 
 - what is the salvus_mesher_model_file?
-- do we actually do anythin with topography? files needed?
+- do we actually do anything with topography? files needed?
 - what is coastlines_detailed.vtp doing there?
