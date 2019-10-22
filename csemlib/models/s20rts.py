@@ -22,7 +22,7 @@ class S20rts(object):
 
         # Basic info for the original S20RTS (spherical harmonics).
         directory, _ = os.path.split(os.path.split(__file__)[0])
-        self.directory = os.path.join(directory, 'data', 's20rts')
+        self.directory = os.path.join(directory, 'data','base_model','s20rts')
         self.mfl = os.path.join(self.directory, 'S20RTS.sph')
         self.layers = np.array([6346.63, 6296.63, 6241.64, 6181.14, 6114.57, 6041.34, 5960.79,
                                 5872.18, 5774.69, 5667.44, 5549.46, 5419.68, 5276.89, 5119.82,

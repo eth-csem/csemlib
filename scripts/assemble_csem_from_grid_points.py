@@ -15,7 +15,7 @@ for depth in depths:
 
     # Read some grid points. -------------------------------------------------------------------------------------------
     x, y, z = read_from_grid('../../grids/OUTPUT/fib_'+str(depth)+'.dat')
-    evaluate_csem(x,y,z)
+    grid_data = evaluate_csem(x,y,z)
 
 
     # Generate output. -------------------------------------------------------------------------------------------------
@@ -24,5 +24,5 @@ for depth in depths:
     elements = triangulate(x, y, z)
     points = np.array((x, y, z)).T
 
-    filename = os.path.join(csemlib_directory, str(depth)+'.vtk')
+    filename = os.path.join('./', str(depth)+'.vtk')
     write_vtk(filename, points, elements, grid_data.df['vsv'])

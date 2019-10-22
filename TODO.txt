@@ -1,0 +1,22 @@
+TODO
+
+- incorporate Salvus_1 and Salvus_2 models
+- update code moved from the old csemlib/scripts into /scripts
+- check if GridData parameter 'solver' is really needed
+- in GridData rename the *salvus* functions as they are not specific to Salvus
+- write output in the IRIS Earth model format
+
+
+DONE
+
+- rename /examples to /scripts and move code from /csemlib/scripts to that directory
+- move /regional_models into /data and rename to /refinements
+- subdivide /data into /base_model and /refinements
+- make a single evaluate_csem.py to be used by all other functions that evaluate the CSEM
+
+
+QUESTIONS
+
+- what is the salvus_mesher_model_file?
+- do we actually do anythin with topography? files needed?
+- what is coastlines_detailed.vtp doing there?

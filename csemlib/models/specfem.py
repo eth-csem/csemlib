@@ -30,7 +30,7 @@ class Specfem(object):
         self.interp_method = interp_method
 
         directory, _ = os.path.split(os.path.split(__file__)[0])
-        self.directory = os.path.join(directory, 'data', 'mikes_global_update')
+        self.directory = os.path.join(directory, 'data','refinements','global_2016')
 
         #self.read()
         self.read_from_hdf5()

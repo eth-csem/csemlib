@@ -18,7 +18,7 @@ class Crust(object):
 
         # Setup directories, data structure and smoothing factors.
         directory = os.path.split(os.path.split(__file__)[0])[0]
-        self.directory = os.path.join(directory, 'data', 'crust')
+        self.directory = os.path.join(directory, 'data','base_model','crust')
         self._data = xarray.Dataset()
         self.crust_dep_smooth_fac = 0.0
         self.crust_vs_smooth_fac = 0.0

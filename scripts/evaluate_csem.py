@@ -22,7 +22,7 @@ def evaluate_csem(x, y, z, regions=None, regions_2=None):
     """
 
     csemlib_directory, _ = os.path.split(os.path.split(__file__)[0])
-    model_dir = os.path.join(csemlib_directory, 'csemlib/data/regional_models')
+    model_dir = os.path.join(csemlib_directory,'csemlib','data','refinements')
 
     print(model_dir)
 
@@ -104,9 +104,9 @@ def evaluate_csem(x, y, z, regions=None, regions_2=None):
     ses3d = Ses3d(os.path.join(model_dir, 'eastern_mediterranean_2019'), grid_data.components)
     ses3d.eval_point_cloud_griddata(grid_data)
 
-    # Add Mike's global update
-    mikes_update = Specfem(interp_method="trilinear_interpolation")
-    mikes_update.eval_point_cloud_griddata(grid_data)
+    # Add Michael Afanasiev's global update
+    global1 = Specfem(interp_method="trilinear_interpolation")
+    global1.eval_point_cloud_griddata(grid_data)
 
 
     return grid_data
