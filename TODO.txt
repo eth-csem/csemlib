@@ -1,14 +1,19 @@
+BUGS
+
+- There seems to be a problem with the ses3d trilinear interpolation in cases where the vertical grid spacing is small (<10 km).
+
+
 TODO
 
 - D.P.: incorporate Salvus_1 and Salvus_2 models
 - D.P.: update code moved from the old csemlib/scripts into /scripts
 - D.P.: check if GridData parameter 'solver' is really needed
 - D.P.: in GridData rename the *salvus* functions as they are not specific to Salvus
-- A.F.: write output in the IRIS Earth model format
 
 
 DONE
 
+- Write CSEM to IRIS EMC model format. New script csem2emc.py.
 - rename /examples to /scripts and move code from /csemlib/scripts to that directory
 - move /regional_models into /data and rename to /refinements
 - subdivide /data into /base_model and /refinements

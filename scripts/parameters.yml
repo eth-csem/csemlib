@@ -1,0 +1,54 @@
+#==============================================================================
+# Geographic extent, sampling and model parameters
+#==============================================================================
+#
+# Latitude in degree.
+lat_min: 39.0
+lat_max: 51.0
+lat_increment: 1.0
+# Longitude in degree.
+lon_min: 3.0
+lon_max: 22.0
+lon_increment: 1.0
+# Depth in km.
+depth_min: 0.0
+depth_max: 600.0
+depth_increment: 10.0
+# Parameters to include.
+include_vsv: True
+include_vsh: True
+include_vpv: False
+include_vph: False
+include_eta: False
+include_rho: False
+
+#==============================================================================
+# Metadata
+#==============================================================================
+#
+# Name under which the netCDF file will be stored.
+filename: testmodel2.nc
+# Short description of the model.
+title: "here comes a short description of the model"
+# ID of the model.
+id: "CSEM_alpine"
+# Reference, e.g., to publication.
+reference: "Fichtner et al., GRL (2018)"
+# Reference to a website.
+references: "https://cos.ethz.ch"
+# Short summary of the model.
+summary: "CSEM extraction of the Alpine region"
+# Keywords.
+keywords: "Collaborative Seismic Earth Model, multi-scale full-waveform inversion"
+# Creator name.
+creator_name: "ETH SWP, Andreas Fichtner"
+# Creator url.
+creator_url: "https://cos.ethz.ch"
+# Creator email.
+creator_email: "andreas.fichtne@erdw.ethz.ch"
+# Institution.
+institution: "ETH Zurich, Seismology and Wave Physics (SWP)"
+# Acknowledgement.
+acknowledgement: "provided by ETH SWP Group"
+# Comment.
+comment: " "
