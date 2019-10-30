@@ -32,9 +32,9 @@ def evaluate_csem(x, y, z, regions=None, regions_2=None):
 
     # Add 1D background model to a mesh with or without explicit discontinuities.
     if (regions is not None) and (regions_2 is not None):
-        grid_data.add_one_d_salvus_continuous(region_min_eps=regions, region_plus_eps=regions_2)
+        grid_data.add_one_d_continuous(region_min_eps=regions, region_plus_eps=regions_2)
     elif regions is not None:
-        grid_data.add_one_d_salvus_discontinuous(regions)
+        grid_data.add_one_d_discontinuous(regions)
     else:
         grid_data.add_one_d()
 

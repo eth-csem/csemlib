@@ -13,10 +13,9 @@ class GridData:
     is build on top of that.
     """
 
-    def __init__(self, x=[], y=[], z=[], components=[], coord_system='cartesian', solver=None):
+    def __init__(self, x=[], y=[], z=[], components=[], coord_system='cartesian'):
         self.coordinate_system = coord_system
         self.components = []
-        self.solver = solver
         if self.coordinate_system == 'cartesian':
             self.coordinates = ['x', 'y', 'z']
         elif self.coordinate_system == 'spherical':
@@ -116,7 +115,7 @@ class GridData:
         for param in one_d_parameters:
             del self.df[param]
 
-    def add_one_d_salvus_discontinuous(self, regions, add_to_components=True, initialize_with_one=False):
+    def add_one_d_discontinuous(self, regions, add_to_components=True, initialize_with_one=False):
         if initialize_with_one:
             one_d_rho = one_d_vpv = one_d_vph = one_d_vsv = one_d_vsh = one_eta = one_Qmu = one_Qkappa\
                 = np.ones_like(self.df['r'])
@@ -144,7 +143,7 @@ class GridData:
             self.set_component('Qmu', self.df['one_d_Qmu'])
             self.set_component('QKappa', self.df['one_d_Qkappa'])
 
-    def add_one_d_salvus_continuous(self, region_plus_eps, region_min_eps, add_to_components=True, initialize_with_one=False):
+    def add_one_d_continuous(self, region_plus_eps, region_min_eps, add_to_components=True, initialize_with_one=False):
         if initialize_with_one:
             one_d_rho = one_d_vpv = one_d_vph = one_d_vsv = one_d_vsh = one_d_eta = one_d_Qmu = one_d_Qkappa\
                 = np.ones_like(self.df['r'])

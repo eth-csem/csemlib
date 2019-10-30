@@ -28,9 +28,9 @@ def _evaluate_csem_salvus(x, y, z, regions_dict, regions, regions_2=None):
     grid_data = GridData(x, y, z, solver='salvus')
 
     if regions_2 is not None:
-        grid_data.add_one_d_salvus_continuous(region_min_eps=regions, region_plus_eps=regions_2)
+        grid_data.add_one_d_continuous(region_min_eps=regions, region_plus_eps=regions_2)
     else:
-        grid_data.add_one_d_salvus_discontinuous(regions)
+        grid_data.add_one_d_discontinuous(regions)
 
     # tomo_vp = Tomo_vp()
     # tomo_vp.eval_point_cloud_griddata(grid_data)
