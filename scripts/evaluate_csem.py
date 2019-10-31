@@ -101,8 +101,8 @@ def evaluate_csem(x, y, z, regions=None, regions_2=None):
     ses3d.eval_point_cloud_griddata(grid_data)
 
     # Add Eastern Mediterranean 2019
-    # ses3d = Ses3d(os.path.join(model_dir, 'eastern_mediterranean_2019'), grid_data.components, interp_method='nearest_neighbour')
-    # ses3d.eval_point_cloud_griddata(grid_data)
+    ses3d = Ses3d(os.path.join(model_dir, 'eastern_mediterranean_2019'), grid_data.components, interp_method='nearest_neighbour')
+    ses3d.eval_point_cloud_griddata(grid_data)
 
     # Add Michael Afanasiev's global update
     global1 = Specfem(interp_method="trilinear_interpolation")
