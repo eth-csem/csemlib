@@ -5,11 +5,6 @@ import click
 def cli():
     pass
 
-regions_dict=dict(eval_crust=True, eval_s20=True, eval_south_atlantic=True, eval_australia=True,
-                  eval_japan=True, eval_europe=True, eval_marmara_2017=True,
-                  eval_south_east_asia_2017=True, eval_iberia_2015=True, eval_iberia_2017=True,
-                  eval_north_atlantic_2013=True, eval_north_america=True, eval_global_1=True)
-
 #=======================================================================================================================
 #- Add values to a continuous Salvus mesh. -----------------------------------------------------------------------------
 #=======================================================================================================================
@@ -24,21 +19,17 @@ def add_continuous_csem_salvus(filename, with_topography):
     """ Adds CSEM to a continuous salvus mesh file"""
     from .salvus import add_csem_to_continuous_exodus
 
-    add_csem_to_continuous_exodus(filename=filename, regions_dict=regions_dict,
+    add_csem_to_continuous_exodus(filename=filename,
                                   with_topography=with_topography)
 
 @cli.command()
 @click.option('--filename',
               help="Salvus continuous exodus file.", required=True)
-@click.option('--with_topography',
-              help="Account for topography/ellipticity, requires 1D radius in in mesh",
-              is_flag=True)
-def add_s20_to_isotropic_mesh(filename, with_topography):
+def add_s20_to_isotropic_mesh(filename):
     """ Adds CSEM to a continuous salvus mesh file"""
     from .salvus import add_s20_to_isotropic_exodus
 
-    add_s20_to_isotropic_exodus(filename=filename, regions_dict=regions_dict,
-                                  with_topography=with_topography)
+    add_s20_to_isotropic_exodus(filename=filename)
 
 #=======================================================================================================================
 #- Add values to a discontinuous Salvus mesh. --------------------------------------------------------------------------
@@ -51,7 +42,7 @@ def add_discontinuous_csem_salvus(filename):
     """ Adds CSEM to a discontinuous salvus mesh file"""
     from .salvus import add_csem_to_discontinuous_exodus
 
-    add_csem_to_discontinuous_exodus(filename=filename, regions_dict=regions_dict)
+    add_csem_to_discontinuous_exodus(filename=filename)
 
 #=======================================================================================================================
 #- Evaluate CSEM on a Fibonacci sphere and write to file. --------------------------------------------------------------
@@ -83,4 +74,4 @@ def add_continuous_csem_salvusv2(filename):
     """ Adds CSEM to a continuous salvusv2 mesh file"""
     from .salvus import add_csem_to_salvusv2
 
-    add_csem_to_salvusv2(filename=filename, regions_dict=regions_dict)
+    add_csem_to_salvusv2(filename=filename)
