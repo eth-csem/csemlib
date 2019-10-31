@@ -6,13 +6,12 @@ BUGS
 TODO
 
 - D.P.: incorporate Salvus_1 and Salvus_2 models
-- D.P.: update code moved from the old csemlib/scripts into /scripts
-- D.P.: check if GridData parameter 'solver' is really needed
-- D.P.: in GridData rename the *salvus* functions as they are not specific to Salvus
 
 
 DONE
-
+- update code moved from the old csemlib/scripts into /scripts
+- check if GridData parameter 'solver' is really needed
+- in GridData rename the *salvus* functions as they are not specific to Salvus
 - Write CSEM to IRIS EMC model format. New script csem2emc.py.
 - rename /examples to /scripts and move code from /csemlib/scripts to that directory
 - move /regional_models into /data and rename to /refinements
