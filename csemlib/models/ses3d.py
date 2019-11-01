@@ -390,7 +390,7 @@ class Ses3d(object):
             if rad > np.max(unique_rads_region):
                 rad = np.max(unique_rads_region)
 
-            if rad < np.min(unique_rads_region):
+            if rad <= np.min(unique_rads_region):
                 rad = np.min(unique_rads_region) + tolerance
 
             # simply skip edges
