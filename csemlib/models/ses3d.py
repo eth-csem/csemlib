@@ -391,17 +391,17 @@ class Ses3d(object):
                 rad = np.max(unique_rads_region)
 
             if rad <= np.min(unique_rads_region):
-                rad = np.min(unique_rads_region) + tolerance
+                continue
 
             # simply skip edges
-            if colat > np.max(unique_colats_region) or colat < np.min(unique_colats_region):
+            if colat > np.max(unique_colats_region) or colat <= np.min(unique_colats_region):
                 continue
 
             # handle edge case australia (quick fix)
             if np.max(unique_lons_region) > 180.0 and lon < 0.0:
                 lon += 360
 
-            if lon > np.max(unique_lons_region) or lon < np.min(unique_lons_region):
+            if lon > np.max(unique_lons_region) or lon <= np.min(unique_lons_region):
                 continue
 
             # Find surrounding vertices
