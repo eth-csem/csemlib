@@ -38,6 +38,8 @@ tests/vtk/
 # Regional models
 ses3d_models/
 regional_models/
+csemlib/data/refinements/
+!*csemlib/data/refinements/*/modelinfo.yml
 !*regional_models/*/modelinfo.yml
 
 # PyInstaller
