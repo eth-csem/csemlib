@@ -110,8 +110,8 @@ def evaluate_csem(x, y, z, regions=None, regions_2=None):
     global1.eval_point_cloud_griddata(grid_data)
 
     # Add Neda Masouminia's Iran model
-    #salvus_v1 = Salvus_v1(os.path.join(model_dir, 'iran_2019'))
-    #salvus_v1.eval_point_cloud_griddata(grid_data)
+    salvus_v1 = Salvus_v1(os.path.join(model_dir, 'iran_2019'))
+    salvus_v1.eval_point_cloud_griddata(grid_data)
 
 
     return grid_data
