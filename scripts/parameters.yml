@@ -3,13 +3,13 @@
 #==============================================================================
 #
 # Latitude in degree.
-lat_min: 39.0
-lat_max: 51.0
-lat_increment: 1.0
+lat_min: 30.0
+lat_max: 75.0
+lat_increment: 0.5
 # Longitude in degree.
-lon_min: 3.0
-lon_max: 22.0
-lon_increment: 1.0
+lon_min: -35.0
+lon_max: 85.0
+lon_increment: 0.5
 # Depth in km.
 depth_min: 0.0
 depth_max: 600.0
@@ -27,17 +27,17 @@ include_rho: False
 #==============================================================================
 #
 # Name under which the netCDF file will be stored.
-filename: testmodel2.nc
+filename: csem_europe.nc
 # Short description of the model.
-title: "here comes a short description of the model"
+title: "Collaborative Seismic Earth Model (CSEM) - extraction of Europe"
 # ID of the model.
-id: "CSEM_alpine"
+id: "csem_europe"
 # Reference, e.g., to publication.
-reference: "Fichtner et al., GRL (2018)"
+reference: "Fichtner et al., GRL (2018); Fichtner et al., JGR (2013)"
 # Reference to a website.
-references: "https://cos.ethz.ch"
+references: "https://cos.ethz.ch/research/CSEM.html"
 # Short summary of the model.
-summary: "CSEM extraction of the Alpine region"
+summary: "CSEM extraction of Europe"
 # Keywords.
 keywords: "Collaborative Seismic Earth Model, multi-scale full-waveform inversion"
 # Creator name.
@@ -49,6 +49,6 @@ creator_email: "andreas.fichtne@erdw.ethz.ch"
 # Institution.
 institution: "ETH Zurich, Seismology and Wave Physics (SWP)"
 # Acknowledgement.
-acknowledgement: "provided by ETH SWP Group"
+acknowledgement: "provided by ETH SWP Group, see publication references"
 # Comment.
 comment: " "

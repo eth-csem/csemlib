@@ -1,6 +1,8 @@
 import numpy as np
 import pyexodus
+import yaml
 import os
+import io
 
 from scipy import spatial
 
@@ -39,8 +41,16 @@ class Salvus_v1(object):
         final_file = os.path.join(self.directory, "final.e")
         initial_file = os.path.join(self.directory, "initial.e")
 
+        # Read yaml file containing information on the ses3d submodel.
+        with io.open(os.path.join(self.directory, 'modelinfo.yml'), 'rt') as fh:
+            try:
+                self.model_info = yaml.load(fh)
+                print('Evaluating Salvus 1 model: {}'.format(self.model_info['model']))
+            except yaml.YAMLError as exc:
+                print(exc)
+
         # Read perturbations
-        for param in self.self.params:
+        for param in self.params:
             with pyexodus.exodus(final_file) as e_final:
                 val = e_final.get_node_variable_values(param, step=1)
             with pyexodus.exodus(initial_file) as e_init:

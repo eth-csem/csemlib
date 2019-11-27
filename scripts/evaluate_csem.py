@@ -5,6 +5,7 @@ from csemlib.models.crust import Crust
 from csemlib.models.s20rts import S20rts
 from csemlib.models.ses3d import Ses3d
 from csemlib.models.specfem import Specfem
+from csemlib.models.salvus_v1 import Salvus_v1
 
 
 def evaluate_csem(x, y, z, regions=None, regions_2=None):
@@ -52,7 +53,7 @@ def evaluate_csem(x, y, z, regions=None, regions_2=None):
     ses3d = Ses3d(os.path.join(model_dir, 'south_atlantic_2013'), grid_data.components) 
     ses3d.eval_point_cloud_griddata(grid_data)
 
-    # Add Australia
+    # # Add Australia
     ses3d = Ses3d(os.path.join(model_dir, 'australia_2010'), grid_data.components) 
     ses3d.eval_point_cloud_griddata(grid_data)
 
@@ -62,7 +63,7 @@ def evaluate_csem(x, y, z, regions=None, regions_2=None):
     cst.eval_point_cloud_grid_data(grid_data)
 
 
-    # # Add 3D models with crustal component.
+    # Add 3D models with crustal component.
     
     # Add Japan
     ses3d = Ses3d(os.path.join(model_dir, 'japan_2016'), grid_data.components) 
@@ -107,6 +108,10 @@ def evaluate_csem(x, y, z, regions=None, regions_2=None):
     # Add Michael Afanasiev's global update
     global1 = Specfem(interp_method="trilinear_interpolation")
     global1.eval_point_cloud_griddata(grid_data)
+
+    # Add Neda Masouminia's Iran model
+    #salvus_v1 = Salvus_v1(os.path.join(model_dir, 'iran_2019'))
+    #salvus_v1.eval_point_cloud_griddata(grid_data)
 
 
     return grid_data
