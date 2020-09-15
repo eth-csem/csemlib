@@ -22,5 +22,5 @@ components:
   - vsh
   - vsv
 model: japan_2017
-taper: True
+taper: False
 reference: 'This contains the refined Japan model, not yet published (as of 24 April 2017). It was constructd as follows: (1) 19 iterations before publication (starting with 50-80s period range, finishing with 20-80s). (2) To perform iterations for higher frequencies the published model was refined, i.e. the grid spacing was reduced. (3) Starting with the refined model, Saule ran 7 iterations for 15-80s period range for the original (large) domain. (4) After noticing that it is difficult to update the complete domain, Saule reduced the domain (see subJapan_summary), added a few new events, new stations from China and ran additional 7 iterations for the period range of 15-80s.'

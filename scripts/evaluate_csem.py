@@ -25,7 +25,6 @@ def evaluate_csem(x, y, z, regions=None, regions_2=None):
     csemlib_directory, _ = os.path.split(os.path.split(__file__)[0])
     model_dir = os.path.join(csemlib_directory,'csemlib','data','refinements')
 
-    print(model_dir)
 
     grid_data = GridData(x, y, z)
 
@@ -50,11 +49,11 @@ def evaluate_csem(x, y, z, regions=None, regions_2=None):
     # Models without crust that must be added before adding the crust.
 
     # Add South Atlantic
-    ses3d = Ses3d(os.path.join(model_dir, 'south_atlantic_2013'), grid_data.components) 
+    ses3d = Ses3d(os.path.join(model_dir, 'south_atlantic_2013'), grid_data.components)
     ses3d.eval_point_cloud_griddata(grid_data)
 
     # # Add Australia
-    ses3d = Ses3d(os.path.join(model_dir, 'australia_2010'), grid_data.components) 
+    ses3d = Ses3d(os.path.join(model_dir, 'australia_2010'), grid_data.components)
     ses3d.eval_point_cloud_griddata(grid_data)
 
 
@@ -66,35 +65,35 @@ def evaluate_csem(x, y, z, regions=None, regions_2=None):
     # Add 3D models with crustal component.
     
     # Add Japan
-    ses3d = Ses3d(os.path.join(model_dir, 'japan_2016'), grid_data.components) 
+    ses3d = Ses3d(os.path.join(model_dir, 'japan_2016'), grid_data.components)
     ses3d.eval_point_cloud_griddata(grid_data)
 
     # Add Europe
-    ses3d = Ses3d(os.path.join(model_dir, 'europe_2013'), grid_data.components) 
+    ses3d = Ses3d(os.path.join(model_dir, 'europe_2013'), grid_data.components)
     ses3d.eval_point_cloud_griddata(grid_data)
 
     # Add Marmara
-    ses3d = Ses3d(os.path.join(model_dir, 'marmara_2017'), grid_data.components) 
+    ses3d = Ses3d(os.path.join(model_dir, 'marmara_2017'), grid_data.components)
     ses3d.eval_point_cloud_griddata(grid_data)
-    
+
     # Add South-East Asia
-    ses3d = Ses3d(os.path.join(model_dir, 'south_east_asia_2017'), grid_data.components) 
+    ses3d = Ses3d(os.path.join(model_dir, 'south_east_asia_2017'), grid_data.components)
     ses3d.eval_point_cloud_griddata(grid_data)
 
     # Add Iberia 2015
-    ses3d = Ses3d(os.path.join(model_dir, 'iberia_2015'), grid_data.components) 
+    ses3d = Ses3d(os.path.join(model_dir, 'iberia_2015'), grid_data.components)
     ses3d.eval_point_cloud_griddata(grid_data)
-    
+
     # Add Iberia 2017
-    ses3d = Ses3d(os.path.join(model_dir, 'iberia_2017'), grid_data.components) 
+    ses3d = Ses3d(os.path.join(model_dir, 'iberia_2017'), grid_data.components)
     ses3d.eval_point_cloud_griddata(grid_data)
-    
+
     # Add North Atlantic 2013
-    ses3d = Ses3d(os.path.join(model_dir, 'north_atlantic_2013'), grid_data.components) 
+    ses3d = Ses3d(os.path.join(model_dir, 'north_atlantic_2013'), grid_data.components)
     ses3d.eval_point_cloud_griddata(grid_data)
 
     # Add North America 2017
-    ses3d = Ses3d(os.path.join(model_dir, 'north_america_2017'), grid_data.components) 
+    ses3d = Ses3d(os.path.join(model_dir, 'north_america_2017'), grid_data.components)
     ses3d.eval_point_cloud_griddata(grid_data)
 
     # Add Japan 2017
@@ -102,7 +101,7 @@ def evaluate_csem(x, y, z, regions=None, regions_2=None):
     ses3d.eval_point_cloud_griddata(grid_data)
 
     # Add Eastern Mediterranean 2019
-    ses3d = Ses3d(os.path.join(model_dir, 'eastern_mediterranean_2019'), grid_data.components) 
+    ses3d = Ses3d(os.path.join(model_dir, 'eastern_mediterranean_2019'), grid_data.components)
     ses3d.eval_point_cloud_griddata(grid_data)
 
     # Add Michael Afanasiev's global update

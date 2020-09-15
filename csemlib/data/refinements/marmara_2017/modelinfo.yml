@@ -24,5 +24,5 @@ components:
   - vsh
   - vsv
 model: marmara_2017
-taper: True
+taper: False
 reference: 'This model is the full-waveform model by Yesim Cubuk, based on an expanded dataset for western Anatolia and the initial model from Fichtner et al. (2013). At this point (March 2017), these results are not yet published.'
