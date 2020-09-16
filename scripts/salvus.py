@@ -204,77 +204,27 @@ def add_csem_to_discontinuous_exodus(filename):
     salvus_mesh.attach_field('fluid', np.array(regions == 1, dtype=int))
     salvus_mesh.close()
 
+
 def put_csem(mesh):
-
     """
-    Adds CSEM to a mesh object
-    :param mesh: salvus mesh object
-    :param kwargs:
+    Adds CSEM to a mesh object. Acts on the obj
+    :param mesh: salvus.mesh.UnstructuredMesh object
     :return:
     """
 
-    nodes_per_element = 27
-    # convert x,y,z to spherical shhape
-
-
-    for i in np.arange(nodes_per_element):
-        print('Adding CSEM to node {} out of {}'.format(i + 1,nodes_per_element))
-
-        x, y, z = mesh.points[mesh.connectivity[:, i]].T / 1000.0
-        rad = np.sqrt(x ** 2 + y ** 2 + z ** 2)
-        # get 1D_radius (normalized from 0 to 1)
-        print("Accounting for topography")
-        rad_1D = mesh.element_nodal_fields["z_node_1D"][:, i]
-        r_earth = 6371.0
-        x[rad > 0] = x[rad > 0] * r_earth * rad_1D[rad > 0] / rad[rad > 0]
-        y[rad > 0] = y[rad > 0] * r_earth * rad_1D[rad > 0] / rad[rad > 0]
-        z[rad > 0] = z[rad > 0] * r_earth * rad_1D[rad > 0] / rad[rad > 0]
-        rad = np.sqrt(x ** 2 + y ** 2 + z ** 2)
-
-        epsilon = 0.5
-        rad_plus_eps = rad + epsilon
-        rad_minus_eps = rad - epsilon
-        regions_plus_eps = one_dimensional.get_region(rad_plus_eps)
-        regions_min_eps = one_dimensional.get_region(rad_minus_eps)
-
-        grid_data = evaluate_csem(x, y, z, regions=regions_plus_eps,
-                                  regions_2=regions_min_eps)
-        dimensionless_components = ["eta", "QKappa", "Qmu"]
-        for component in grid_data.components:
-            # Convert to m/s
-            if component in dimensionless_components:
-                vals = grid_data.get_component(component)
-            else:
-                vals = grid_data.get_component(component) * 1000
-            mesh.element_nodal_fields['%s' % (component.upper())][:, i] = vals
-
-    return mesh
-
-
-def put_csem_nodal(mesh):
-    """
-    Adds CSEM to a mesh object
-    :param mesh: salvus mesh object
-    :param kwargs:
-    :return:
-    """
-
-    nodes_per_element = 27
-    # convert x,y,z to spherical shhape
-
+    # Map points to the sphere to easy point finding
     x, y, z = mesh.points.T / 1000.0
     rad = np.sqrt(x ** 2 + y ** 2 + z ** 2)
-    # get 1D_radius (normalized from 0 to 1)
-    print("Accounting for topography")
 
     _, i = np.unique(mesh.connectivity, return_index=True)
-    rad_1D = mesh.element_nodal_fields["z_node_1D"].flatten()[i]
+    rad_1d = mesh.element_nodal_fields["z_node_1D"].flatten()[i]
     r_earth = 6371.0
-    x[rad > 0] = x[rad > 0] * r_earth * rad_1D[rad > 0] / rad[rad > 0]
-    y[rad > 0] = y[rad > 0] * r_earth * rad_1D[rad > 0] / rad[rad > 0]
-    z[rad > 0] = z[rad > 0] * r_earth * rad_1D[rad > 0] / rad[rad > 0]
+    x[rad > 0] = x[rad > 0] * r_earth * rad_1d[rad > 0] / rad[rad > 0]
+    y[rad > 0] = y[rad > 0] * r_earth * rad_1d[rad > 0] / rad[rad > 0]
+    z[rad > 0] = z[rad > 0] * r_earth * rad_1d[rad > 0] / rad[rad > 0]
     rad = np.sqrt(x ** 2 + y ** 2 + z ** 2)
 
+    # Average on the discontinuities
     epsilon = 0.5
     rad_plus_eps = rad + epsilon
     rad_minus_eps = rad - epsilon
@@ -283,15 +233,63 @@ def put_csem_nodal(mesh):
 
     grid_data = evaluate_csem(x, y, z, regions=regions_plus_eps,
                               regions_2=regions_min_eps)
+
     dimensionless_components = ["eta", "QKappa", "Qmu"]
     for component in grid_data.components:
-        # Convert to m/s
         if component in dimensionless_components:
             vals = grid_data.get_component(component)
         else:
+            # Convert to m/s
             vals = grid_data.get_component(component) * 1000
 
         mesh.element_nodal_fields['%s' % (component.upper())][:] = \
             vals[mesh.connectivity]
 
-    return mesh
+
+
+# def put_csem(mesh):
+#
+#     """
+#     Deprecated function that is slower, but less memory intensive.
+#     It places csem on a salvus grid and does it for the element's gll points
+#     one by one. This might be useful at some point.
+#     :param mesh: salvus mesh object
+#     :param kwargs:
+#     :return:
+#     """
+#
+#     nodes_per_element = 27
+#     # convert x,y,z to spherical shhape
+#
+#     for i in np.arange(nodes_per_element):
+#         print('Adding CSEM to node {} out of {}'.format(i + 1,nodes_per_element))
+#
+#         x, y, z = mesh.points[mesh.connectivity[:, i]].T / 1000.0
+#         rad = np.sqrt(x ** 2 + y ** 2 + z ** 2)
+#         # get 1D_radius (normalized from 0 to 1)
+#         print("Accounting for topography")
+#         rad_1D = mesh.element_nodal_fields["z_node_1D"][:, i]
+#         r_earth = 6371.0
+#         x[rad > 0] = x[rad > 0] * r_earth * rad_1D[rad > 0] / rad[rad > 0]
+#         y[rad > 0] = y[rad > 0] * r_earth * rad_1D[rad > 0] / rad[rad > 0]
+#         z[rad > 0] = z[rad > 0] * r_earth * rad_1D[rad > 0] / rad[rad > 0]
+#         rad = np.sqrt(x ** 2 + y ** 2 + z ** 2)
+#
+#         epsilon = 0.5
+#         rad_plus_eps = rad + epsilon
+#         rad_minus_eps = rad - epsilon
+#         regions_plus_eps = one_dimensional.get_region(rad_plus_eps)
+#         regions_min_eps = one_dimensional.get_region(rad_minus_eps)
+#
+#         grid_data = evaluate_csem(x, y, z, regions=regions_plus_eps,
+#                                   regions_2=regions_min_eps)
+#         dimensionless_components = ["eta", "QKappa", "Qmu"]
+#         for component in grid_data.components:
+#             # Convert to m/s
+#             if component in dimensionless_components:
+#                 vals = grid_data.get_component(component)
+#             else:
+#                 vals = grid_data.get_component(component) * 1000
+#             mesh.element_nodal_fields['%s' % (component.upper())][:, i] = vals
+#
+#     return mesh
