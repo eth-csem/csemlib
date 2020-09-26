@@ -668,7 +668,6 @@ class Ses3d(object):
             del ses3d_dmn.df['taper']
         GridData.df.update(ses3d_dmn.df)
 
-
     def trilinear_interpolation_parallel(self, ses3d_dmn, GridData, region):
         """
         Essentially what is done here is loop through the points in the ses3d_dmn,
@@ -870,7 +869,7 @@ class Ses3d(object):
                     else:
                         print(
                             'No valid component_type. Must be perturbation_to_1D, perturbation_to_3D or absolute')
-                    return vals
+                return vals
 
             a = np.vectorize(set_val, signature='()->(n)')
             return a(point_indices)
