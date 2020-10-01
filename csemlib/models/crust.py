@@ -45,12 +45,14 @@ class Crust(object):
 
         # Add coordinates, converted to radians.
         self._data.coords['col'] = np.radians(col)
-        self._data.coords['lon'] = np.radians(lon)
+
+        # Scipy's RectSphereBivariateSpline requires the grid to start at lon 0
+        self.min_lon = np.min(np.radians(lon))
+        self._data.coords['lon'] = np.radians(lon) - self.min_lon
 
         # Add units.
         self._data.coords['col'].attrs['units'] = 'radians'
         self._data.coords['lon'].attrs['units'] = 'radians'
-
 
     def interpolate(self, colat, lon, param=None, smooth_fac=0.0):
         """
@@ -64,16 +66,19 @@ class Crust(object):
         """
 
         # Create smoother object.
-        lut = interp.RectSphereBivariateSpline(self._data.coords['col'][::-1], self._data.coords['lon'], self._data[param], s=smooth_fac)
+        lut = interp.RectSphereBivariateSpline(self._data.coords['col'][::-1],
+                                               self._data.coords['lon'],
+                                               self._data[param], s=smooth_fac)
 
         # Because the colatitude array is reversed, we must also reverse the request.
         colat_reverse = np.pi - colat
 
         # Convert longitudes to coordinate system of the crustal model.
-        lon_reverse = np.copy(lon)
-        lon_reverse[lon_reverse < 0.0] = 2.0 * np.pi + lon_reverse[lon_reverse < 0.0]
-        return lut.ev(colat_reverse, lon_reverse)
+        lon_reverse = np.copy(lon) - self.min_lon
+        lon_reverse[lon_reverse < 0.0] = \
+            2.0 * np.pi + lon_reverse[lon_reverse < 0.0]
 
+        return lut.ev(colat_reverse, lon_reverse)
 
     def eval_point_cloud_grid_data(self, GridData):
         """
@@ -103,8 +108,6 @@ class Crust(object):
         #cst_zone = add_crust_all_params_topo_griddata_with_taper(cst_zone, crust_dep, crust_vs, topo, taper_percentage=0.25)
         lib.add_crust(len(cst_zone), crust_dep, crust_vs, topo, cst_zone['vsv'].values, cst_zone['vsh'].values,
                       cst_zone['vpv'].values, cst_zone['vph'].values, cst_zone['rho'].values, cst_zone['r'].values)
-
-
 
         # Append crustal and non crustal zone back together.
         GridData.df.update(cst_zone)
