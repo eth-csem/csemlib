@@ -44,7 +44,7 @@ class Salvus_v1(object):
         # Read yaml file containing information on the ses3d submodel.
         with io.open(os.path.join(self.directory, 'modelinfo.yml'), 'rt') as fh:
             try:
-                self.model_info = yaml.load(fh)
+                self.model_info = yaml.load(fh, Loader=yaml.FullLoader)
                 print('Evaluating Salvus 1 model: {}'.format(self.model_info['model']))
             except yaml.YAMLError as exc:
                 print(exc)

@@ -704,12 +704,12 @@ class Ses3d(object):
 
         print("Performing trilinear interpolation for SES3D model...")
 
-        # for idx in range(len(ses3d_dmn.df["r"])):
         global _process
+
         def _process(point_indices):
             def set_val(idx):
 
-                # fill valls array
+                # fill valls array with current values
                 vals = np.zeros(len(self.components))
                 for _i, component in enumerate(self.components):
                     vals[_i] = ses3d_dmn.df[component].values[idx]
@@ -725,14 +725,16 @@ class Ses3d(object):
                     return vals
 
                 # simply skip edges
-                if colat > np.max(unique_colats_region) or colat <= np.min(unique_colats_region):
+                if colat > np.max(unique_colats_region) or\
+                        colat <= np.min(unique_colats_region):
                     return vals
 
                 # handle edge case australia (quick fix)
                 if np.max(unique_lons_region) > 180.0 and lon < 0.0:
                     lon += 360
 
-                if lon > np.max(unique_lons_region) or lon <= np.min(unique_lons_region):
+                if lon > np.max(unique_lons_region) or\
+                        lon <= np.min(unique_lons_region):
                     return vals
 
                 # Find surrounding vertices
@@ -754,61 +756,63 @@ class Ses3d(object):
                 min_dep = unique_rads_region[rmin]  # top
                 max_dep = unique_rads_region[rmax]  # bottom
 
+                r = np.array([[max_colat - colat], [colat - min_colat]])
+                l = np.array([max_lon - lon, lon - min_lon])
+
                 # bi-linear interpolation bottom
-                # compute row position in arrays
+                # compute row position bottom in arrays
                 # min colat, min lon
-                row_idx_min_min = colat_min * (
+                row_idx_min_min_min = colat_min * (
                     num_depths * num_lons) + lon_min * num_depths + rmin
                 # max colat, min_lon
-                row_idx_max_min = colat_max * (
+                row_idx_max_min_min = colat_max * (
                     num_depths * num_lons) + lon_min * num_depths + rmin
                 # min colat, max lon
-                row_idx_min_max = colat_min * (
+                row_idx_min_max_min = colat_min * (
                     num_depths * num_lons) + lon_max * num_depths + rmin
                 # max colat, max lon
-                row_idx_max_max = colat_max* (
+                row_idx_max_max_min = colat_max* (
                     num_depths * num_lons) + lon_max * num_depths + rmin
 
+                # bi-linear interpolation top
+                # compute row position top in arrays
+                # min colat, min lon
+                row_idx_min_min_max = colat_min * (
+                        num_depths * num_lons) + lon_min * num_depths + rmax
+                # max colat, min_lon
+                row_idx_max_min_max = colat_max * (
+                        num_depths * num_lons) + lon_min * num_depths + rmax
+                # min colat, max lon
+                row_idx_min_max_max = colat_min * (
+                        num_depths * num_lons) + lon_max * num_depths + rmax
+                # max colat, max lon
+                row_idx_max_max_max = colat_max * (
+                        num_depths * num_lons) + lon_max * num_depths + rmax
+
+                # If taper, compute interpolate the taper value too.
                 if self.model_info['taper']:
                     component = "taper"
                     Q11 = self.grid_data_ses3d.df[component].values[
-                        row_idx_min_min]
+                        row_idx_min_min_min]
                     Q12 = self.grid_data_ses3d.df[component].values[
-                        row_idx_max_min]
+                        row_idx_max_min_min]
                     Q21 = self.grid_data_ses3d.df[component].values[
-                        row_idx_min_max]
+                        row_idx_min_max_min]
                     Q22 = self.grid_data_ses3d.df[component].values[
-                        row_idx_max_max]
+                        row_idx_max_max_min]
 
-                    r = np.array([[max_colat - colat], [colat - min_colat]])
                     m = np.array([[Q11, Q12], [Q21, Q22]])
-                    l = np.array([max_lon - lon, lon - min_lon])
                     val_rmin = l @ m @ r / (
                     (max_lon - min_lon) * (max_colat - min_colat))
 
-                    # bi-linear interpolation top
-                    # compute row position in arrays
-                    # min colat, min lon
-                    row_idx_min_min = colat_min * (
-                        num_depths * num_lons) + lon_min * num_depths + rmax
-                    # max colat, min_lon
-                    row_idx_max_min = colat_max * (
-                        num_depths * num_lons) + lon_min * num_depths + rmax
-                    # min colat, max lon
-                    row_idx_min_max = colat_min * (
-                        num_depths * num_lons) + lon_max * num_depths + rmax
-                    # max colat, max lon
-                    row_idx_max_max = colat_max * (
-                        num_depths * num_lons) + lon_max * num_depths + rmax
-
                     Q11 = self.grid_data_ses3d.df[component].values[
-                        row_idx_min_min]
+                        row_idx_min_min_max]
                     Q12 = self.grid_data_ses3d.df[component].values[
-                        row_idx_max_min]
+                        row_idx_max_min_max]
                     Q21 = self.grid_data_ses3d.df[component].values[
-                        row_idx_min_max]
+                        row_idx_min_max_max]
                     Q22 = self.grid_data_ses3d.df[component].values[
-                        row_idx_max_max]
+                        row_idx_max_max_max]
 
                     m = np.array([[Q11, Q12], [Q21, Q22]])
                     val_rmax = l @ m @ r / (
@@ -821,44 +825,26 @@ class Ses3d(object):
                     taper = 1.0
 
                 for _i, component in enumerate(self.components):
-                    Q11 = self.grid_data_ses3d.df[component].values[row_idx_min_min]
-                    Q12 = self.grid_data_ses3d.df[component].values[row_idx_max_min]
-                    Q21 = self.grid_data_ses3d.df[component].values[row_idx_min_max]
-                    Q22 = self.grid_data_ses3d.df[component].values[row_idx_max_max]
-
-                    r = np.array([[max_colat - colat], [colat - min_colat]])
+                    # Bottom interpolation
+                    Q11 = self.grid_data_ses3d.df[component].values[row_idx_min_min_min]
+                    Q12 = self.grid_data_ses3d.df[component].values[row_idx_max_min_min]
+                    Q21 = self.grid_data_ses3d.df[component].values[row_idx_min_max_min]
+                    Q22 = self.grid_data_ses3d.df[component].values[row_idx_max_max_min]
                     m = np.array([[Q11, Q12], [Q21, Q22]])
-                    l = np.array([max_lon - lon, lon - min_lon])
                     val_rmin = l @ m @ r / ((max_lon - min_lon) * (max_colat - min_colat))
 
-                    # bi-linear interpolation top
-                    # compute row position in arrays
-                    # min colat, min lon
-                    row_idx_min_min = colat_min * (
-                        num_depths * num_lons) + lon_min * num_depths + rmax
-                    # max colat, min_lon
-                    row_idx_max_min = colat_max * (
-                        num_depths * num_lons) + lon_min * num_depths + rmax
-                    # min colat, max lon
-                    row_idx_min_max = colat_min * (
-                        num_depths * num_lons) + lon_max * num_depths + rmax
-                    # max colat, max lon
-                    row_idx_max_max = colat_max * (
-                        num_depths * num_lons) + lon_max * num_depths + rmax
-
-                    Q11 = self.grid_data_ses3d.df[component].values[row_idx_min_min]
-                    Q12 = self.grid_data_ses3d.df[component].values[row_idx_max_min]
-                    Q21 = self.grid_data_ses3d.df[component].values[row_idx_min_max]
-                    Q22 = self.grid_data_ses3d.df[component].values[row_idx_max_max]
-
+                    # Top interpolation
+                    Q11 = self.grid_data_ses3d.df[component].values[row_idx_min_min_max]
+                    Q12 = self.grid_data_ses3d.df[component].values[row_idx_max_min_max]
+                    Q21 = self.grid_data_ses3d.df[component].values[row_idx_min_max_max]
+                    Q22 = self.grid_data_ses3d.df[component].values[row_idx_max_max_max]
                     m = np.array([[Q11, Q12], [Q21, Q22]])
                     val_rmax = l @ m @ r / (
                         (max_lon - min_lon) * (max_colat - min_colat))
 
-                    # linear interpolation top and bottom
+                    # linear interpolation between top and bottom
                     val = (val_rmax * (min_dep - rad) + val_rmin * (rad - max_dep)) / (min_dep - max_dep)
 
-                    # ses3d_dmn.df["vsv"].values[idx] = np.rad2deg(val) / 1000.0
                     if self.model_info['component_type'] == 'perturbation_to_1D':
                         one_d = ses3d_dmn.df['one_d_{}'.format(component)].values[idx]
                         vals[_i]  = ((one_d + val) * taper) + (1.0 - taper) * ses3d_dmn.df[component].values[idx]
@@ -879,7 +865,8 @@ class Ses3d(object):
         work_list = np.arange(len(ses3d_dmn.df["r"]))
 
         num_processes = multiprocessing.cpu_count()
-        n = 20 * num_processes
+        n = min(20 * num_processes, len(work_list))
+
         task_list = np.array_split(work_list, n)
         results = []
         with multiprocessing.Pool(num_processes) as pool:
@@ -902,3 +889,4 @@ class Ses3d(object):
 
         # Finally update GridData object
         GridData.df.update(ses3d_dmn.df)
+
