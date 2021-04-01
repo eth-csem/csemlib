@@ -12,7 +12,7 @@ from csemlib.io.readers import read_from_grid
 
 
 csemlib_directory, _ = os.path.split(os.path.split(__file__)[0])
-model_dir = os.path.join(csemlib_directory, '..', 'regional_models')
+model_dir = os.path.join(csemlib_directory, 'csemlib', 'data', "refinements")
 
 
 def assemble_csem(grid_data, **kwargs):

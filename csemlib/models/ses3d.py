@@ -392,7 +392,8 @@ class Ses3d(object):
                 rad = np.max(unique_rads_region)
 
             if rad <= np.min(unique_rads_region):
-                continue
+                rad = np.min(unique_rads_region) + 0.01 # added this line, seems to skip the bottom otherwise
+                # continue
 
             # simply skip edges
             if colat > np.max(unique_colats_region) or colat <= np.min(unique_colats_region):
@@ -722,7 +723,9 @@ class Ses3d(object):
                     rad = np.max(unique_rads_region)
 
                 if rad <= np.min(unique_rads_region):
-                    return vals
+                    rad = np.min(unique_rads_region) + 0.01
+                    # added the above line after issue at 50, 200 km with europe
+                    # return vals
 
                 # simply skip edges
                 if colat > np.max(unique_colats_region) or\
