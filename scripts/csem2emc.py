@@ -9,7 +9,8 @@ import yaml
 
 #- Open the input yaml file.
 
-fid=open('parameters.yml','r')
+# fid=open('parameters.yml','r')
+fid=open("parameters.yml", "r")
 info=yaml.load(fid)
 fid.close()
 
@@ -202,19 +203,29 @@ lats[:]=lat
 lons[:]=lon
 depths[:]=depth
 
-n=0
 
-for i in range(len(depth)):
-	for j in range(len(lat)):
-		for k in range(len(lon)):
+print("Starting write")
 
-			if include_vsv: vsv[i,j,k]=grid_data.df['vsv'][n]
-			if include_vsh: vsh[i,j,k]=grid_data.df['vsh'][n]
-			if include_vpv: vpv[i,j,k]=grid_data.df['vpv'][n]
-			if include_vph: vph[i,j,k]=grid_data.df['vph'][n]
-			if include_eta: eta[i,j,k]=grid_data.df['eta'][n]
-			if include_rho: rho[i,j,k]=grid_data.df['rho'][n]
-			n+=1
+if include_vsv: vsv[:] = grid_data.df['vsv'].values.reshape((len(depth), len(lat), len(lon)))
+if include_vsh: vsh[:] = grid_data.df['vsh'].values.reshape((len(depth), len(lat), len(lon)))
+if include_vpv: vpv[:] = grid_data.df['vpv'].values.reshape((len(depth), len(lat), len(lon)))
+if include_vph: vph[:] = grid_data.df['vph'].values.reshape((len(depth), len(lat), len(lon)))
+if include_eta: eta[:] = grid_data.df['eta'].values.reshape((len(depth), len(lat), len(lon)))
+if include_rho: rho[:] = grid_data.df['rho'].values.reshape((len(depth), len(lat), len(lon)))
+
+# n=0
+# for i in range(len(depth)):
+# 	print(i)
+# 	for j in range(len(lat)):
+# 		for k in range(len(lon)):
+#
+# 			if include_vsv: vsv[i,j,k]=grid_data.df['vsv'][n]
+# 			if include_vsh: vsh[i,j,k]=grid_data.df['vsh'][n]
+# 			if include_vpv: vpv[i,j,k]=grid_data.df['vpv'][n]
+# 			if include_vph: vph[i,j,k]=grid_data.df['vph'][n]
+# 			if include_eta: eta[i,j,k]=grid_data.df['eta'][n]
+# 			if include_rho: rho[i,j,k]=grid_data.df['rho'][n]
+# 			n+=1
 
 #- Clean up. ------------------------------------------------------------------
 
