@@ -1,11 +1,10 @@
 import os
-import time
 
 import h5py
 import numpy as np
 from csemlib.lib import s20eval
 
-from csemlib.helpers import load_lib
+from csemlib.tools.helpers import load_lib
 lib = load_lib()
 
 

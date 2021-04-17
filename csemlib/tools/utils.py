@@ -8,8 +8,12 @@ def lagrange(x,x0,x1,x2):
 
     return ((x-x1)/(x0-x1))*((x-x2)/(x0-x2))
 
+
 def lat2colat(lat):
+    """Convert latitudes to colatitudes. Latitudes should be given in
+    degrees."""
     return 90.0 - lat
+
 
 def sph2cart(col, lon, rad):
     """
@@ -80,6 +84,7 @@ def get_rot_matrix(angle, x, y, z):
     matrix[2, 2] = np.cos(angle) + (z * z) * (1 - np.cos(angle))
 
     return matrix
+
 
 def rotate(x, y, z, matrix):
     """

@@ -2,7 +2,7 @@ import os
 import io
 import yaml
 import numpy as np
-from ..utils import rotate, get_rot_matrix
+from csemlib.tools.utils import rotate, get_rot_matrix
 
 # Read cartesian grid points. ==========================================================================================
 

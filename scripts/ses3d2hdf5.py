@@ -1,7 +1,5 @@
 import os
-
 import io
-
 import yaml
 
 from csemlib.models.ses3d import Ses3d
@@ -14,7 +12,6 @@ model_dir = os.path.join(models_directory, 'australia_2010')
 with io.open(os.path.join(model_dir, 'modelinfo.yml'), 'rt') as fh:
     model_info = yaml.load(fh)
 components = model_info['components']
-
 
 ses3d = Ses3d(model_dir, components)
 ses3d.read()

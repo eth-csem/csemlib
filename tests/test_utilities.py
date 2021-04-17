@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-import csemlib.utils as utl
+import csemlib.tools.utils as utl
 
 
 def test_sph2cart():

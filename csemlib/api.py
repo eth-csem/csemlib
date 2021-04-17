@@ -1,4 +1,3 @@
-import os
 import numpy as np
 
 from csemlib.background.fibonacci_grid import FibonacciGrid
@@ -307,7 +306,7 @@ def csem_to_csv(lats, lons, depths, filename="csem.csv"):
 
     """
 
-    from csemlib.utils import sph2cart, lat2colat
+    from csemlib.tools.utils import sph2cart, lat2colat
     import pandas as pd
 
     rads = 6371.0 - depths

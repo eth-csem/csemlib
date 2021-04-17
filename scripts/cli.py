@@ -5,7 +5,6 @@ import click
 def cli():
     pass
 
-
 #===============================================================================
 #- Evaluate CSEM on a Fibonacci sphere and write to file. ----------------------
 #===============================================================================
@@ -22,7 +21,6 @@ def cli():
                    "defaults to vsv.",
               default="vsv")
 @click.option('--filename', help='VTK filename (optional)', default=None)
-
 def write_csem_depth_slice(depth, resolution, parameter, filename):
     """ Writes a CSEM depth slice to vtk"""
 

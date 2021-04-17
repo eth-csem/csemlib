@@ -3,7 +3,7 @@ import numpy as np
 import copy
 
 from csemlib.models.one_dimensional import csem_1d_background_eval_point_cloud, csem_1d_background_eval_point_cloud_region_specified
-from csemlib.utils import cart2sph, sph2cart, get_rot_matrix, rotate
+from csemlib.tools.utils import cart2sph, sph2cart, get_rot_matrix, rotate
 
 
 class GridData:

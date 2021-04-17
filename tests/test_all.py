@@ -1,15 +1,12 @@
 import os
 
 import numpy as np
-from meshpy.tet import MeshInfo, build, Options
 
-import csemlib
 import csemlib.background.skeleton as skl
-import csemlib.models.crust as crust
 import csemlib.models.s20rts as s20
 from csemlib.models.model import triangulate, write_vtk
 from csemlib.models.topography import Topography
-from csemlib.utils import cart2sph
+from csemlib.tools.utils import cart2sph
 import boltons.fileutils
 
 TEST_DATA_DIR = os.path.join(os.path.split(__file__)[0], 'test_data')

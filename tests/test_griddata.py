@@ -2,7 +2,7 @@ import numpy as np
 
 from csemlib.background.fibonacci_grid import FibonacciGrid
 from csemlib.background.grid_data import GridData
-from csemlib.utils import cart2sph
+from csemlib.tools.utils import cart2sph
 
 DECIMAL_CLOSE = 3
 

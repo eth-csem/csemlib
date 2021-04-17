@@ -1,6 +1,6 @@
 from pyexodus import exodus
 import numpy as np
-from ..helpers import load_lib
+from csemlib.tools.helpers import load_lib
 
 lib = load_lib()
 

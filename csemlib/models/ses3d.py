@@ -10,7 +10,7 @@ from csemlib.background.grid_data import GridData
 import numpy as np
 import scipy.spatial as spatial
 
-from ..utils import sph2cart, rotate, get_rot_matrix
+from csemlib.tools.utils import sph2cart, rotate, get_rot_matrix
 
 #=======================================================================================================================
 # Little helper functions.

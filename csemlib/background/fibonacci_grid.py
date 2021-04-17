@@ -1,7 +1,7 @@
 import math
 import numpy as np
 
-from csemlib.utils import cart2sph, sph2cart, get_rot_matrix, rotate
+from csemlib.tools.utils import cart2sph, sph2cart, get_rot_matrix, rotate
 
 
 class FibonacciGrid:
