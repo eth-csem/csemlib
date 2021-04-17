@@ -3,15 +3,12 @@ import io
 import yaml
 import xarray
 import os
-import sys
 from tqdm import tqdm
 import h5py
 from csemlib.background.grid_data import GridData
 
 import numpy as np
 import scipy.spatial as spatial
-from scipy.interpolate import Rbf
-from scipy.interpolate import griddata
 
 from ..utils import sph2cart, rotate, get_rot_matrix
 
@@ -251,10 +248,8 @@ class Ses3d(object):
                                                 balanced_tree=False)
                 self.nearest_neighbour_interpolation(pnt_tree_orig, ses3d_dmn, GridData)
             else:
-                pnt_tree_orig = spatial.cKDTree(grid_coords,
-                                                balanced_tree=False)
-                # Get the Cartesian coordinates of the ses3d grid, for later use in interpolation.
-                self.grid_and_rbf_interpolation(pnt_tree_orig, ses3d_dmn, interp_method, grid_coords, GridData)
+                raise Exception(f"Interpolation method {interp_method} is not "
+                                f"implemented.")
 
     # Extract grid points within ses3d domain. =========================================================================
 
@@ -605,68 +600,6 @@ class Ses3d(object):
                 print('No valid component_type. Must be perturbation_to_1D, perturbation_to_3D or absolute')
 
         # Update that master GridData structure.
-        GridData.df.update(ses3d_dmn.df)
-
-
-    # Spline interpolation. Not yet fully functional. ==================================================================
-
-    def grid_and_rbf_interpolation(self, pnt_tree_orig, ses3d_dmn, interp_method, grid_coords, GridData):
-        # Use 30 nearest points
-        _, all_neighbours = pnt_tree_orig.query(ses3d_dmn.get_coordinates(coordinate_type='cartesian'), k=100)
-
-        # Interpolate ses3d value for each grid point
-        i = 0
-        if self.model_info['taper']:
-            components = ['taper'] + self.components
-            ses3d_dmn.set_component('taper', np.zeros(len(ses3d_dmn)))
-        else:
-            components = self.components
-
-        for neighbours in all_neighbours:
-            x_c_orig, y_c_orig, z_c_orig = grid_coords[neighbours].T
-            for component in components:
-                dat_orig = self.grid_data_ses3d.df[component][neighbours].values
-                coords_new = ses3d_dmn.get_coordinates(coordinate_type='cartesian').T
-                x_c_new, y_c_new, z_c_new = coords_new.T[i]
-
-                if interp_method == 'griddata_linear':
-                    pts_local = np.array((x_c_orig, y_c_orig, z_c_orig)).T
-                    xi = np.array((x_c_new, y_c_new, z_c_new))
-                    if self.model_info['component_type'] == 'absolute':
-                        val = griddata(pts_local, dat_orig, xi, method='linear',
-                                       fill_value=ses3d_dmn.df[component].values[i])
-                    elif self.model_info['component_type'] == 'perturbation':
-                        val = griddata(pts_local, dat_orig, xi, method='linear', fill_value=0.0)
-
-                elif interp_method == 'radial_basis_func':
-                    rbfi = Rbf(x_c_orig, y_c_orig, z_c_orig, dat_orig, function='linear')
-                    val = rbfi(x_c_new, y_c_new, z_c_new)
-
-                if self.model_info['component_type'] == 'perturbation':
-                    if self.model_info['taper'] and component != 'taper':
-                        taper = ses3d_dmn.df['taper'].values[i]
-                        one_d = ses3d_dmn.df['one_d_{}'.format(component)].values[i]
-                        ses3d_dmn.df[component].values[i] += (taper * val)
-                        ses3d_dmn.df[component].values[i] = (one_d + val) * taper + \
-                                                            (1 - taper) * ses3d_dmn.df[component].values[i]
-                    else:
-                        ses3d_dmn.df[component].values[i] += val
-                elif self.model_info['component_type'] == 'absolute':
-                    if self.model_info['taper'] and component != 'taper':
-                        taper = ses3d_dmn.df['taper'].values[i]
-                        ses3d_dmn.df[component].values[i] = taper * val + (1-taper) * ses3d_dmn.df[component].values[i]
-                    else:
-                        ses3d_dmn.df[component].values[i] = val
-            i += 1
-
-            if i % 100 == 0:
-                ind = float(i)
-                percent = ind / len(all_neighbours) * 100.0
-                sys.stdout.write("\rProgress: %.1f%% " % percent)
-                sys.stdout.flush()
-        sys.stdout.write("\r")
-        if self.model_info['taper']:
-            del ses3d_dmn.df['taper']
         GridData.df.update(ses3d_dmn.df)
 
     def trilinear_interpolation_parallel(self, ses3d_dmn, GridData, region):
