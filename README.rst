@@ -37,9 +37,9 @@ Installation on Linux and Mac OS X
 * If installation was successful all tests should be completed succesfully. If not, this could be related to additional missing dependencies, look at the *travis.yml* for inspiration. This file describes an installation with the additional system dependencies.
 
 
-^^^^^^^^
-Examples
-^^^^^^^^
+^^^^^^^^^^^^^
+Example usage
+^^^^^^^^^^^^^
 
 The code block below shows an example where the CSEM is extracted onto a spherical depth slice at 200 km depth.
 
