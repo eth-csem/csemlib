@@ -63,7 +63,7 @@ to the CSV file format.
    depths = np.linspace(0, 600, 31)
 
    from csenlib.api import csem2csv
-   csem2csv(latitudes, longitudes, depths)
+   csem2csv(latitudes, longitudes, depths, filename="csem_extraction.csv")
 
 In the following example, we make an extraction into the IRIS EMC file format.
 This works with a parameters.yml file of which an example can be found in csemlib/scripts/parameters.yml
