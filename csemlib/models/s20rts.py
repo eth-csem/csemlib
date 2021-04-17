@@ -3,11 +3,11 @@ import time
 
 import h5py
 import numpy as np
-from csemlib.utils import lagrange as L
-from ..lib import s20eval
+from csemlib.lib import s20eval
 
-from ..helpers import load_lib
+from csemlib.helpers import load_lib
 lib = load_lib()
+
 
 class S20rts(object):
     """
