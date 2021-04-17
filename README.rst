@@ -70,7 +70,7 @@ This works with a parameters.yml file of which an example can be found in csemli
 
 .. code-block:: python
 
-    from csemlib.api import csem2enc
+    from csemlib.api import csem2emc
     csem2emc("parameters.yml")
 
 In the next example, we add the CSEM model onto a salvus mesh object. See www.mondaic.com for more information
