@@ -8,6 +8,8 @@ csemlib
 Python package that enables extracting the CSEM
 -----------------------------------------------
 
+Note that CSEM extractions are only possible, if you have access to the regional submodels. 
+
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Installation on Linux and Mac OS X
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -16,10 +18,12 @@ Installation on Linux and Mac OS X
 
      git clone https://github.com/eth-csem/csemlib.git
 
-* To ensure correct installation create a conda environment by typing::
+* csemlib maybe installed into an existing Python 3.x environment. To ensure correct installation create a conda environment by typing::
 
      conda create --name csemlib-env python=3 numpy scipy pytest cython numba xarray pandas matplotlib PyYAML
      source activate csemlib-env
+     
+* Alternatively, you may skip the above step.
 
 * Change directory to csemlib and install by typing::
 
@@ -37,41 +41,12 @@ Installation on Linux and Mac OS X
 Example
 ^^^^^^^
 
-The code block below shows an example where S20RTS and a crustal model are added to a 1D background model.
+The code block below shows an example where the CSEM is extracted onto a spherical depth slice at 200 km depth.
 
 
 .. code-block:: python
 
-   import numpy as np
-   from csemlib.background.fibonacci_grid import FibonacciGrid
-   from csemlib.background.grid_data import GridData
-   from csemlib.models.crust import Crust
-   from csemlib.models.model import triangulate, write_vtk
-   from csemlib.models.s20rts import S20rts
-   
-   # Generate Grid
-   rad = 6250.0
-   fib_grid = FibonacciGrid()
-   radii = np.array([rad])
-   resolution = np.ones_like(radii) * 200
-   fib_grid.set_global_sphere(radii, resolution)
-   grid_data = GridData(*fib_grid.get_coordinates())
-   
-   # Add 1d background model and initalize a 'vsv' array with values
-   grid_data.add_one_d()
-   
-   # Evaluate S20RTS
-   s20 = S20rts()
-   s20.eval_point_cloud_griddata(grid_data)
-   
-   # Evaluate Crust
-   cst = Crust()
-   cst.eval_point_cloud_grid_data(grid_data)
+   from csenlib.api import depth_slice_to_vtk
+   depth_slice_to_vtk(depth=200, resolution=200, parameter="vsv", filename="extraction.vtk")
 
-   # Write to a vtk file for easy visualisation in Paraview
-   x, y, z = grid_data.get_coordinates().T
-   elements = triangulate(x, y, z)
-   coords = np.array((x, y, z)).T
-
-   write_vtk('prem_s20_crust_vsv.vtk', coords, elements, grid_data.get_component('vsv'), 'vsv')
-
+This writes a VTK file that can be visualized with Paraview, for example.
