@@ -43,14 +43,14 @@ Installation on Linux and Mac OS X
 Example usage
 ^^^^^^^^^^^^^
 
-The code block below shows an example where the CSEM is extracted onto a spherical depth slice at 200 km depth.
-This writes a VTK file that can be visualized with Paraview, for example.
-
+The code block below shows an example where the CSEM is extracted onto a spherical depth slice at 100 km depth
+with a distance between points of 200 km.
+This command then writes a VTK file that can be visualized with Paraview, for example.
 
 .. code-block:: python
 
    from csenlib.api import csem2vtk
-   csem2vtk(depth=200, resolution=200, parameter="vsv", filename="extraction.vtk")
+   csem2vtk(depth=100, grid_spacing=200, parameter="vsv", filename="extraction.vtk")
 
 
 Below is an example of an extraction of the CSEM on to a grid, that is then written

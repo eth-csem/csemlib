@@ -7,13 +7,13 @@ from csemlib.models.s20rts import S20rts
 from csemlib.csem.evaluate_csem import evaluate_csem
 
 
-def csem2vtk(depth, resolution, parameter="vsv", filename=None):
+def csem2vtk(depth, grid_spacing, parameter="vsv", filename=None):
     """
     Writes a spherical slice to the VTK format for visualization with e.g.
     Paraview.
 
     :param depth: Depth of the slice in km
-    :param resolution: Distance between grid points in km
+    :param grid_spacing: Distance between grid points in km
     :param parameter: Name of parameter to be plotted. Choose from: vsv, vsh,
     rho, vpv, vph, eta. Defaults to vsv.
     :param filename: Name of the vtk depth slice, if none is given
@@ -24,7 +24,8 @@ def csem2vtk(depth, resolution, parameter="vsv", filename=None):
 
     # Initialize grid points
     fib_grid = FibonacciGrid()
-    fib_grid.set_global_sphere(radii=[6371.0-depth], resolution=[resolution])
+    fib_grid.set_global_sphere(radii=[6371.0 - depth],
+                               resolution=[grid_spacing])
     grid_data = evaluate_csem(*fib_grid.get_coordinates())
 
     x, y, z = grid_data.get_coordinates().T
@@ -34,7 +35,7 @@ def csem2vtk(depth, resolution, parameter="vsv", filename=None):
     points = np.array((x, y, z)).T
 
     if filename is None:
-        filename = f"depth_{str(depth)}_res_{str(resolution)}_" \
+        filename = f"depth_{str(depth)}_res_{str(grid_spacing)}_" \
                f"{parameter}.vtk"
 
         # filename = os.path.join(".", name)

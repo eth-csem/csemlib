@@ -13,8 +13,8 @@ def cli():
 @click.option('--depth', prompt='Enter depth in km',
               help='Depth in km, defaults to 150',
               default=150.0)
-@click.option('--resolution', prompt='Enter resolution',
-              help='Resolution in km, defaults to 200',
+@click.option('--grid_spacing', prompt='Enter grid spacing',
+              help='Grid spacing in km, defaults to 200',
               default=200.0)
 @click.option('--parameter', prompt="Enter parameter",
               help="Name of parameter. Choose vsv, vsh, vpv, etc., "
