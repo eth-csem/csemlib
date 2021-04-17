@@ -8,7 +8,9 @@ csemlib
 Python package that enables extracting the CSEM
 -----------------------------------------------
 
-Note that CSEM extractions are only possible, if you have access to the regional submodels. 
+Note that CSEM extractions are only possible, if you have access to the regional submodels.
+In addition, you gcc, should be installed before installation. (This is currently still a legacy from the
+fact that we historically used Fortran to evaluate the S20RTS spherical harmonics).
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Installation on Linux and Mac OS X
