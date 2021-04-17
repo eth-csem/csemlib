@@ -42,6 +42,7 @@ Example usage
 ^^^^^^^^^^^^^
 
 The code block below shows an example where the CSEM is extracted onto a spherical depth slice at 200 km depth.
+This writes a VTK file that can be visualized with Paraview, for example.
 
 
 .. code-block:: python
@@ -49,7 +50,6 @@ The code block below shows an example where the CSEM is extracted onto a spheric
    from csenlib.api import csem2vtk
    csem2vtk(depth=200, resolution=200, parameter="vsv", filename="extraction.vtk")
 
-This writes a VTK file that can be visualized with Paraview, for example.
 
 Below is an example of an extraction of the CSEM on to a grid, that is then written
 to the CSV file format.
@@ -66,7 +66,7 @@ to the CSV file format.
    csem2csv(latitudes, longitudes, depths, filename="csem_extraction.csv")
 
 In the following example, we make an extraction into the IRIS EMC file format.
-This works with a parameters.yml file of which an example can be found in csemlib/scripts/parameters.yml
+This works with a parameters.yml file of which an example can be found in csemlib/scripts/parameters.yml.
 
 .. code-block:: python
 
@@ -74,12 +74,13 @@ This works with a parameters.yml file of which an example can be found in csemli
     csem2emc("parameters.yml")
 
 In the next example, we add the CSEM model onto a salvus mesh object. See www.mondaic.com for more information
-on salvus meshes
-
+on salvus meshes. Here the salvus.mesh.UnstructuredMesh object to be defined of course and it should use the
+same parameterization as the CSEM. Ellipticity and topography are automatically taken into account upon
+extraction.
 
 .. code-block:: python
 
     from csemlib.api import csem2salvus_mesh
     csem2salvus_mesh(mesh)
 
-This requires the salvus.mesh.UnstructuredMesh object to be defined of course.
+
