@@ -8,6 +8,8 @@ def lagrange(x,x0,x1,x2):
 
     return ((x-x1)/(x0-x1))*((x-x2)/(x0-x2))
 
+def lat2colat(lat):
+    return 90.0 - lat
 
 def sph2cart(col, lon, rad):
     """
