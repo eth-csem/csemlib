@@ -25,7 +25,7 @@ Installation on Linux and Mac OS X
      conda create --name csemlib-env python=3 numpy scipy pytest cython numba xarray pandas matplotlib PyYAML
      source activate csemlib-env
      
-* Alternatively, you may skip the above step.
+* Alternatively, you may skip the above step. If you use csemlib and LASIF https://github.com/dirkphilip/LASIF_2.0. It is also safe to install it in that same environment.
 
 * Change directory to csemlib and install by typing::
 
@@ -77,7 +77,7 @@ This works with a parameters.yml file of which an example can be found in csemli
     csem2emc("parameters.yml")
 
 In the next example, we add the CSEM model onto a salvus mesh object. See www.mondaic.com for more information
-on salvus meshes. Here the salvus.mesh.UnstructuredMesh object to be defined of course and it should use the
+on salvus meshes. Here the salvus.mesh.UnstructuredMesh object has to be defined of course, and it should use the
 same parameterization as the CSEM. Ellipticity and topography are automatically taken into account upon
 extraction.
 
