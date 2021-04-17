@@ -1,26 +1,11 @@
-BUGS
-
-- There seems to be a problem with the ses3d trilinear interpolation in cases where the vertical grid spacing is small (<10 km).
 
 
 TODO
-
-- D.P.: incorporate Salvus_1 and Salvus_2 models
-
-
-DONE
-- update code moved from the old csemlib/scripts into /scripts
-- check if GridData parameter 'solver' is really needed
-- in GridData rename the *salvus* functions as they are not specific to Salvus
-- Write CSEM to IRIS EMC model format. New script csem2emc.py.
-- rename /examples to /scripts and move code from /csemlib/scripts to that directory
-- move /regional_models into /data and rename to /refinements
-- subdivide /data into /base_model and /refinements
-- make a single evaluate_csem.py to be used by all other functions that evaluate the CSEM
+- Enable incorporation of Salvus_2 models
+- Extend functionalities of the newly added API
 
 
-QUESTIONS
 
-- what is the salvus_mesher_model_file?
-- do we actually do anything with topography? files needed?
-- what is coastlines_detailed.vtp doing there?
+
+
+
