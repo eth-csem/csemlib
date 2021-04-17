@@ -9,6 +9,7 @@ from csemlib.models import one_dimensional
 from csemlib.models.s20rts import S20rts
 from csemlib.csem.evaluate_csem import evaluate_csem
 
+
 def depth_slice_to_vtk(depth, resolution, parameter="vsv", filename=None):
     """
     Writes a spherical slice to the VTK format for visualization with e.g.
@@ -41,6 +42,16 @@ def depth_slice_to_vtk(depth, resolution, parameter="vsv", filename=None):
     print('Writing vtk to {}'.format(filename))
     write_vtk(filename, points, elements, grid_data.df[parameter],
               name=parameter)
+
+
+def write_csem2emc(parameter_file):
+    """
+    This uses the former csem2emc script and writes a csem extraction
+    into the emc format specifified by the paramter file.
+    :param parameter_file: Name of the parameter file.
+    """
+    from csemlib.csem.csem2emc import csem2emc
+    csem2emc(parameter_file)
 
 
 def add_csem_to_continuous_exodus(filename,

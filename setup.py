@@ -35,7 +35,7 @@ setup(
     include_package_data=True,
     dependency_links=['https://github.com/eth-csem/pyexodus/archive/master.zip#egg=pyexodus-master'],
     install_requires=['click', 'numpy', 'scipy', 'matplotlib', 'xarray', 'meshpy', 'numba', 'cython', 'pyvtk', 'boltons', 'PyYAML',
-                      'h5py', 'pyexodus'],
+                      'h5py', 'pyexodus', 'netCDF4'],
     entry_points='''
     [console_scripts]
     csem=scripts.cli:cli
