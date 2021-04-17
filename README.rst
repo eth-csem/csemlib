@@ -15,7 +15,7 @@ fact that we historically used Fortran to evaluate the S20RTS spherical harmonic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Installation on Linux and Mac OS X
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-* Install the latest version of `Anaconda <https://www.continuum.io/downloads>`_ for Python 3.x
+* Install the latest version of `Anaconda <https://www.continuum.io/downloads>`_ for Python 3.x.
 * Clone this repository by typing the following commands to the terminal::
 
      git clone https://github.com/eth-csem/csemlib.git
@@ -59,12 +59,13 @@ to the CSV file format.
 .. code-block:: python
 
    import numpy as np
+   from csenlib.api import csem2csv
 
+   # Define grid.
    latitudes = np.linspace(30, 60, 31)
    longitudes = np.linspace(40, 90, 51)
    depths = np.linspace(0, 600, 31)
 
-   from csenlib.api import csem2csv
    csem2csv(latitudes, longitudes, depths, filename="csem_extraction.csv")
 
 In the following example, we make an extraction into the IRIS EMC file format.
