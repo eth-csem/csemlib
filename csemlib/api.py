@@ -251,9 +251,9 @@ def add_csem_to_discontinuous_exodus(filename):
     salvus_mesh.close()
 
 
-def put_csem(mesh):
+def csem2salvus_mesh(mesh):
     """
-    Adds CSEM to a mesh object. Acts on the obj
+    Adds CSEM to a Salvus mesh object. Acts on the obj
     :param mesh: salvus.mesh.UnstructuredMesh object
     :return:
     """
@@ -290,6 +290,7 @@ def put_csem(mesh):
 
         mesh.element_nodal_fields['%s' % (component.upper())][:] = \
             vals[mesh.connectivity]
+
 
 def csem_to_csv(lats, lons, depths, filename="csem.csv"):
     """

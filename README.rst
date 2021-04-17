@@ -37,9 +37,9 @@ Installation on Linux and Mac OS X
 * If installation was successful all tests should be completed succesfully. If not, this could be related to additional missing dependencies, look at the *travis.yml* for inspiration. This file describes an installation with the additional system dependencies.
 
 
-^^^^^^^
-Example
-^^^^^^^
+^^^^^^^^
+Examples
+^^^^^^^^
 
 The code block below shows an example where the CSEM is extracted onto a spherical depth slice at 200 km depth.
 
@@ -50,3 +50,36 @@ The code block below shows an example where the CSEM is extracted onto a spheric
    depth_slice_to_vtk(depth=200, resolution=200, parameter="vsv", filename="extraction.vtk")
 
 This writes a VTK file that can be visualized with Paraview, for example.
+
+Below is an example of an extraction of the CSEM on to a grid, that is then written
+to the CSV file format.
+
+.. code-block:: python
+
+   import numpy as np
+
+   latitudes = np.linspace(30, 60, 31)
+   longitudes = np.linspace(40, 90, 51)
+   depths = np.linspace(0, 600, 31)
+
+   from csenlib.api import csem2csv
+   csem2csv(latitudes, longitudes, depths)
+
+In the following example, we make an extraction into the IRIS EMC file format.
+This works with a parameters.yml file of which an example can be found in csemlib/scripts/parameters.yml
+
+.. code-block:: python
+
+    from csemlib.api import write_csem2enc
+    write_csem2emc("parameters.yml")
+
+In the next example, we add the CSEM model onto a salvus mesh object. See www.mondaic.com for more information
+on salvus meshes
+
+
+.. code-block:: python
+
+    from csemlib.api import csem2salvus_mesh
+    csem2salvus_mesh(mesh)
+
+This requires the salvus.mesh.UnstructuredMesh object to be defined of course.
