@@ -24,5 +24,5 @@ def cli():
 def write_csem_depth_slice(depth, resolution, parameter, filename):
     """ Writes a CSEM depth slice to vtk"""
 
-    from csemlib import api
-    api.depth_slice_to_vtk(depth, resolution, parameter, filename)
+    from csemlib.api import csem2vtk
+    csem2vtk(depth, resolution, parameter, filename)

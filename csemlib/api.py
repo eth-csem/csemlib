@@ -1,7 +1,5 @@
 import numpy as np
 
-from csemlib.background.fibonacci_grid import FibonacciGrid
-from csemlib.models.model import write_vtk, triangulate
 from csemlib.background.grid_data import GridData
 from csemlib.io.exodus_reader import ExodusReader
 from csemlib.models import one_dimensional
@@ -9,7 +7,7 @@ from csemlib.models.s20rts import S20rts
 from csemlib.csem.evaluate_csem import evaluate_csem
 
 
-def depth_slice_to_vtk(depth, resolution, parameter="vsv", filename=None):
+def csem2vtk(depth, resolution, parameter="vsv", filename=None):
     """
     Writes a spherical slice to the VTK format for visualization with e.g.
     Paraview.
@@ -21,6 +19,8 @@ def depth_slice_to_vtk(depth, resolution, parameter="vsv", filename=None):
     :param filename: Name of the vtk depth slice, if none is given
     an automatic name will be chosen.
     """
+    from csemlib.background.fibonacci_grid import FibonacciGrid
+    from csemlib.models.model import write_vtk, triangulate
 
     # Initialize grid points
     fib_grid = FibonacciGrid()
@@ -43,14 +43,14 @@ def depth_slice_to_vtk(depth, resolution, parameter="vsv", filename=None):
               name=parameter)
 
 
-def write_csem2emc(parameter_file):
+def csem2emc(parameter_file):
     """
     This uses the former csem2emc script and writes a csem extraction
     into the emc format specifified by the paramter file.
     :param parameter_file: Name of the parameter file.
     """
-    from csemlib.csem.csem2emc import csem2emc
-    csem2emc(parameter_file)
+    from csemlib.csem.csem2emc import csem2emc as write_csem2emc
+    write_csem2emc(parameter_file)
 
 
 def add_csem_to_continuous_exodus(filename,
@@ -142,64 +142,6 @@ def add_s20_to_isotropic_exodus(filename):
     salvus_mesh.close()
 
 
-def add_csem_to_salvusv2(filename):
-    """
-    This currently still assumes TTI and might not deal correctly with the CMB
-    and topography.
-
-    :param filename:
-    """
-    import h5py
-
-    gll = h5py.File(filename, 'r+')
-    gll_coords = gll["MODEL/coordinates"]
-    nelem = gll_coords.shape[0]
-    ngll_pelem = gll_coords.shape[1]
-    ndim = 3
-
-    # reshape to list of coordinates
-    gll_coords = np.reshape(gll_coords, (ngll_pelem * nelem, ndim))
-    x, y, z = gll_coords.T / 1000.0
-
-    # compute radius
-    rad = np.sqrt(x ** 2 + y ** 2 + z ** 2)
-
-    # get regions +/- eps to average velocities on the discontinuities
-    epsilon = 0.5
-    rad_plus_eps = rad + epsilon
-    rad_minus_eps = rad - epsilon
-    regions_plus_eps = one_dimensional.get_region(rad_plus_eps)
-    regions_min_eps = one_dimensional.get_region(rad_minus_eps)
-
-    grid_data = evaluate_csem(x, y, z, regions=regions_plus_eps,
-                              regions_2=regions_min_eps)
-    dimensionless_components = ["Eta", "Qkappa", "Qmu"]
-
-    data = gll["MODEL"]["data"]
-    params_str = data.attrs["DIMENSION_LABELS"][1].decode()
-
-    # data shape (nelem, ndata, ngll)
-    param_list = [x.strip(' ') for x in
-                  params_str.lstrip("[").rstrip("]").split("|")]
-    data_vals = data.value
-    for idx, component in enumerate(param_list):
-        component = component.lower()
-        if component == "qmu":
-            component = "Qmu"
-        elif component == "qkappa":
-            component = "QKappa"
-        if component in dimensionless_components:
-            vals = grid_data.get_component(component)
-        else:
-            vals = grid_data.get_component(component) * 1000.0
-
-        # reshape to (nelem, ngll_pelem)
-        vals_reshaped = np.reshape(vals, (nelem, ngll_pelem))
-        data_vals[:, idx, :] = vals_reshaped
-
-    data.write_direct(data_vals)
-
-
 def add_csem_to_discontinuous_exodus(filename):
     """
     Adds CSEM to a discontinuous Salvus mesh
@@ -225,8 +167,8 @@ def add_csem_to_discontinuous_exodus(filename):
     regions = one_dimensional.get_region(rad_c)
 
     for i in np.arange(salvus_mesh.nodes_per_element):
-        print('Adding CSEM to node {} out of {}'.format(i + 1,
-                                                        salvus_mesh.nodes_per_element))
+        print(
+            f"Adding CSEM to node {i+1} out of {salvus_mesh.nodes_per_element}")
         if salvus_mesh.ndim == 2:
             x, y = salvus_mesh.points[
                        salvus_mesh.connectivity[:, i]].T / 1000.0
@@ -291,7 +233,7 @@ def csem2salvus_mesh(mesh):
             vals[mesh.connectivity]
 
 
-def csem_to_csv(lats, lons, depths, filename="csem.csv"):
+def csem2csv(lats, lons, depths, filename="csem.csv"):
     """
     Writea a CSEM extraction to CSV file for a grid of lats, lons, depths.
     Provide the coordinates only, this function automatically creates
@@ -383,3 +325,61 @@ def csem_to_csv(lats, lons, depths, filename="csem.csv"):
 #             mesh.element_nodal_fields['%s' % (component.upper())][:, i] = vals
 #
 #     return mesh
+
+
+# def add_csem_to_salvusv2(filename):
+#     """
+#     This currently still assumes TTI and might not deal correctly with the CMB
+#     and topography.
+#
+#     :param filename:
+#     """
+#     import h5py
+#
+#     gll = h5py.File(filename, 'r+')
+#     gll_coords = gll["MODEL/coordinates"]
+#     nelem = gll_coords.shape[0]
+#     ngll_pelem = gll_coords.shape[1]
+#     ndim = 3
+#
+#     # reshape to list of coordinates
+#     gll_coords = np.reshape(gll_coords, (ngll_pelem * nelem, ndim))
+#     x, y, z = gll_coords.T / 1000.0
+#
+#     # compute radius
+#     rad = np.sqrt(x ** 2 + y ** 2 + z ** 2)
+#
+#     # get regions +/- eps to average velocities on the discontinuities
+#     epsilon = 0.5
+#     rad_plus_eps = rad + epsilon
+#     rad_minus_eps = rad - epsilon
+#     regions_plus_eps = one_dimensional.get_region(rad_plus_eps)
+#     regions_min_eps = one_dimensional.get_region(rad_minus_eps)
+#
+#     grid_data = evaluate_csem(x, y, z, regions=regions_plus_eps,
+#                               regions_2=regions_min_eps)
+#     dimensionless_components = ["Eta", "Qkappa", "Qmu"]
+#
+#     data = gll["MODEL"]["data"]
+#     params_str = data.attrs["DIMENSION_LABELS"][1].decode()
+#
+#     # data shape (nelem, ndata, ngll)
+#     param_list = [x.strip(' ') for x in
+#                   params_str.lstrip("[").rstrip("]").split("|")]
+#     data_vals = data.value
+#     for idx, component in enumerate(param_list):
+#         component = component.lower()
+#         if component == "qmu":
+#             component = "Qmu"
+#         elif component == "qkappa":
+#             component = "QKappa"
+#         if component in dimensionless_components:
+#             vals = grid_data.get_component(component)
+#         else:
+#             vals = grid_data.get_component(component) * 1000.0
+#
+#         # reshape to (nelem, ngll_pelem)
+#         vals_reshaped = np.reshape(vals, (nelem, ngll_pelem))
+#         data_vals[:, idx, :] = vals_reshaped
+#
+#     data.write_direct(data_vals)

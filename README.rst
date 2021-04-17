@@ -47,7 +47,7 @@ The code block below shows an example where the CSEM is extracted onto a spheric
 .. code-block:: python
 
    from csenlib.api import depth_slice_to_vtk
-   depth_slice_to_vtk(depth=200, resolution=200, parameter="vsv", filename="extraction.vtk")
+   csem2vtk(depth=200, resolution=200, parameter="vsv", filename="extraction.vtk")
 
 This writes a VTK file that can be visualized with Paraview, for example.
 
@@ -70,8 +70,8 @@ This works with a parameters.yml file of which an example can be found in csemli
 
 .. code-block:: python
 
-    from csemlib.api import write_csem2enc
-    write_csem2emc("parameters.yml")
+    from csemlib.api import csem2enc
+    csem2emc("parameters.yml")
 
 In the next example, we add the CSEM model onto a salvus mesh object. See www.mondaic.com for more information
 on salvus meshes
