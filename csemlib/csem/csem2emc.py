@@ -4,6 +4,8 @@ import numpy as np
 import time
 import yaml
 
+from csemlib.tools.utils import lat2colat, sph2cart
+
 
 def csem2emc(parameter_file):
     """
@@ -182,15 +184,16 @@ def csem2emc(parameter_file):
     z = []
 
     r = 6371.0 - depth  # radius in km
-    phi = lon * np.pi / 180.0  # longitude in rad
-    theta = (90.0 - lat) * np.pi / 180.0
+    all_lats, all_lons, all_rads = np.meshgrid(lat, lon, r)
+    all_lats, all_lons, all_rads = np.array(
+            (all_lats.ravel(), all_lons.ravel(), all_rads.ravel())
+        )
 
-    for sr in r:
-        for stheta in theta:
-            for sphi in phi:
-                x.append(sr * np.cos(sphi) * np.sin(stheta))
-                y.append(sr * np.sin(sphi) * np.sin(stheta))
-                z.append(sr * np.cos(stheta))
+    # Convert to CSEM coordinates
+    all_colats = lat2colat(all_lats)
+    all_colats_rad = np.deg2rad(all_colats)
+    all_lons_rad = np.deg2rad(all_lons)
+    x, y, z = sph2cart(all_colats_rad, all_lons_rad, all_rads)
 
     # - Get grid_data from CSEM evaluation at Cartesian grid points.
     grid_data = evaluate_csem(x, y, z)
