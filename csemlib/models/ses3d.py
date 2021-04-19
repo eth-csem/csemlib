@@ -277,13 +277,11 @@ class Ses3d(object):
                 top = region_info['region_{}_top'.format(reg)]
                 relative_shift = (top + 2 * eps) / top
                 nodes_to_be_shifted = (np.abs(ses3d_dmn.df['r'] - top) < eps)
-                print("shifting cordinates")
+
                 ses3d_dmn.df['r'][nodes_to_be_shifted] *= relative_shift
                 ses3d_dmn.df['x'][nodes_to_be_shifted] *= relative_shift
                 ses3d_dmn.df['y'][nodes_to_be_shifted] *= relative_shift
                 ses3d_dmn.df['z'][nodes_to_be_shifted] *= relative_shift
-                print(ses3d_dmn.df["r"].values.min())
-                print(ses3d_dmn.df["r"].values.max())
 
         # Rotate all current points into the rotated ses3d coordinate system, in case there is a rotation.
         if geometry['rotation'] is True:
