@@ -269,17 +269,21 @@ class Ses3d(object):
         region_info = self.model_info['region_info']
         num_regions = region_info['num_regions']
 
-        # if the ses3d model has multiple regions, slightly shift near boundaries to the upper region.
+        # if the ses3d model has multiple regions, slightly shift near
+        # boundaries into the upper region.
         if num_regions > 1:
             eps = 0.05
             for reg in range(num_regions)[1:]:
                 top = region_info['region_{}_top'.format(reg)]
                 relative_shift = (top + 2 * eps) / top
                 nodes_to_be_shifted = (np.abs(ses3d_dmn.df['r'] - top) < eps)
+                print("shifting cordinates")
                 ses3d_dmn.df['r'][nodes_to_be_shifted] *= relative_shift
                 ses3d_dmn.df['x'][nodes_to_be_shifted] *= relative_shift
                 ses3d_dmn.df['y'][nodes_to_be_shifted] *= relative_shift
                 ses3d_dmn.df['z'][nodes_to_be_shifted] *= relative_shift
+                print(ses3d_dmn.df["r"].values.min())
+                print(ses3d_dmn.df["r"].values.max())
 
         # Rotate all current points into the rotated ses3d coordinate system, in case there is a rotation.
         if geometry['rotation'] is True:
@@ -308,8 +312,11 @@ class Ses3d(object):
         bottom = 'region_{}_bottom'.format(region)
         top = 'region_{}_top'.format(region)
 
+        # A small tolerance in km to make sure no points are missed near Earth's surface.
+        # only to this for top region, otherwise points may be pushed into
+        # the above region.
         if region_info[top] >= 6371.0:
-            tolerance = 0.5   # A small tolerance in km to make sure no points are missed near Earth's surface.
+            tolerance = 0.5
         else:
             tolerance = 0.0
 
@@ -318,7 +325,11 @@ class Ses3d(object):
             data = np.asanyarray(fh.readlines(), dtype=float)
             rad_regions = _read_multi_region_file(data)
 
-        # slightly shift nodes at layer boundaries such that spherical slices through a ses3d layer boundary look clean
+        # slightly shift nodes very near to layer boundaries
+        # into the above layer. This ensures that slices exactly through
+        # a ses3D layer look clean and don't fall in alternating cells.
+        # Perhaps this is not needed anymore, since we now use
+        # trilinear interpolation instead of nearest neighbour.
         eps = 0.1
         for rad in rad_regions[region]:
             relative_shift = (rad + 2*eps) / rad
@@ -329,220 +340,18 @@ class Ses3d(object):
             ses3d_dmn.df['z'][nodes_to_be_shifted] *= relative_shift
 
         ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['r'] > region_info[bottom]]
-        ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['r'] <= region_info[top] + tolerance]
+        ses3d_dmn.df = ses3d_dmn.df[ses3d_dmn.df['r'] <= region_info[top] +
+                                    tolerance]
 
         # Rotate back to the actual physical domain.
         if geometry['rotation'] is True and self.interp_method != "trilinear":
-            ses3d_dmn.rotate(np.radians(geometry['rot_angle']), geometry['rot_x'], geometry['rot_y'], geometry['rot_z'])
+            ses3d_dmn.rotate(np.radians(geometry['rot_angle']),
+                             geometry['rot_x'], geometry['rot_y'],
+                             geometry['rot_z'])
         return ses3d_dmn
 
     def data(self, region=0):
         return self._data[region]
-
-    def trilinear_interpolation(self, ses3d_dmn, GridData, region):
-        """
-        Essentially what is done here is loop through the points in the ses3d_dmn,
-        find the nearest indices and perform a trilinear interpolation.
-
-        :param ses3d_dmn: Subset of the GridData structure that falls into the ses3d domain
-        :param GridData: Master GridData structure
-        :return:
-        """
-
-        # Read the block_* files containing the coordinate lines. Make lists of indices characterising the subdomains.
-        with io.open(os.path.join(self.directory, 'block_x'), 'rt') as fh:
-            data = np.asarray(fh.readlines(), dtype=float)
-            unique_colats = _read_multi_region_file(data)
-        with io.open(os.path.join(self.directory, 'block_y'), 'rt') as fh:
-            data = np.asarray(fh.readlines(), dtype=float)
-            unique_lons = _read_multi_region_file(data)
-        with io.open(os.path.join(self.directory, 'block_z'), 'rt') as fh:
-            data = np.asanyarray(fh.readlines(), dtype=float)
-            unique_rads = _read_multi_region_file(data)
-
-        # Get centers of boxes.
-        for i, _ in enumerate(unique_colats):
-            unique_colats[i] = 0.5 * (unique_colats[i][1:] + unique_colats[i][:-1])
-            unique_lons[i] = 0.5 * (unique_lons[i][1:] + unique_lons[i][:-1])
-            unique_rads[i] = 0.5 * (unique_rads[i][1:] + unique_rads[i][:-1])
-
-        unique_colats_region = unique_colats[region]
-        unique_lons_region = unique_lons[region]
-        unique_rads_region = unique_rads[region]
-
-        num_colats = len(unique_colats_region)
-        num_lons = len(unique_lons_region)
-        num_depths = len(unique_rads_region)
-        tolerance = 0.0001
-
-        print("Performing trilinear interpolation for SES3D model... This can be a little slow")
-        for idx in range(len(ses3d_dmn.df["r"])):
-            if idx % 5000 == 0:
-                print(np.round(idx/len(ses3d_dmn.df["r"])*100.0, 2), "%", end="\r", flush=True)
-            colat = np.rad2deg(ses3d_dmn.df['c'].values[idx])
-            lon = np.rad2deg(ses3d_dmn.df['l'].values[idx])
-            rad = ses3d_dmn.df['r'].values[idx]
-
-            if rad > np.max(unique_rads_region):
-                rad = np.max(unique_rads_region)
-
-            if rad <= np.min(unique_rads_region):
-                rad = np.min(unique_rads_region) + 0.01 # added this line, seems to skip the bottom otherwise
-                # continue
-
-            # simply skip edges
-            if colat > np.max(unique_colats_region) or colat <= np.min(unique_colats_region):
-                continue
-
-            # handle edge case australia (quick fix)
-            if np.max(unique_lons_region) > 180.0 and lon < 0.0:
-                lon += 360
-
-            if lon > np.max(unique_lons_region) or lon <= np.min(unique_lons_region):
-                continue
-
-            # Find surrounding vertices
-            colat_max = np.where(unique_colats_region - colat >= 0.0)[0][0]
-            colat_min = np.where(unique_colats_region - colat < 0.0)[0][-1]
-
-            lon_max = np.where(unique_lons_region - lon >= 0.0)[0][0]
-            lon_min = np.where(unique_lons_region - lon < 0.0)[0][-1]
-
-            rmin = np.where(unique_rads_region - rad < 0.0)[0][-1]
-            rmax = np.where(unique_rads_region - rad >= 0.0)[0][0]
-
-            max_colat = unique_colats_region[colat_max]
-            min_colat = unique_colats_region[colat_min]
-
-            max_lon = unique_lons_region[lon_max]
-            min_lon = unique_lons_region[lon_min]
-
-            min_dep = unique_rads_region[rmin]  # top
-            max_dep = unique_rads_region[rmax]  # bottom
-
-            # bi-linear interpolation bottom
-            # compute row position in arrays
-            # min colat, min lon
-            row_idx_min_min = colat_min * (
-                num_depths * num_lons) + lon_min * num_depths + rmin
-            # max colat, min_lon
-            row_idx_max_min = colat_max * (
-                num_depths * num_lons) + lon_min * num_depths + rmin
-            # min colat, max lon
-            row_idx_min_max = colat_min * (
-                num_depths * num_lons) + lon_max * num_depths + rmin
-            # max colat, max lon
-            row_idx_max_max = colat_max* (
-                num_depths * num_lons) + lon_max * num_depths + rmin
-
-            if self.model_info['taper']:
-                component = "taper"
-                Q11 = self.grid_data_ses3d.df[component].values[
-                    row_idx_min_min]
-                Q12 = self.grid_data_ses3d.df[component].values[
-                    row_idx_max_min]
-                Q21 = self.grid_data_ses3d.df[component].values[
-                    row_idx_min_max]
-                Q22 = self.grid_data_ses3d.df[component].values[
-                    row_idx_max_max]
-
-                r = np.array([[max_colat - colat], [colat - min_colat]])
-                m = np.array([[Q11, Q12], [Q21, Q22]])
-                l = np.array([max_lon - lon, lon - min_lon])
-                val_rmin = l @ m @ r / (
-                (max_lon - min_lon) * (max_colat - min_colat))
-
-                # bi-linear interpolation top
-                # compute row position in arrays
-                # min colat, min lon
-                row_idx_min_min = colat_min * (
-                    num_depths * num_lons) + lon_min * num_depths + rmax
-                # max colat, min_lon
-                row_idx_max_min = colat_max * (
-                    num_depths * num_lons) + lon_min * num_depths + rmax
-                # min colat, max lon
-                row_idx_min_max = colat_min * (
-                    num_depths * num_lons) + lon_max * num_depths + rmax
-                # max colat, max lon
-                row_idx_max_max = colat_max * (
-                    num_depths * num_lons) + lon_max * num_depths + rmax
-
-                Q11 = self.grid_data_ses3d.df[component].values[
-                    row_idx_min_min]
-                Q12 = self.grid_data_ses3d.df[component].values[
-                    row_idx_max_min]
-                Q21 = self.grid_data_ses3d.df[component].values[
-                    row_idx_min_max]
-                Q22 = self.grid_data_ses3d.df[component].values[
-                    row_idx_max_max]
-
-                m = np.array([[Q11, Q12], [Q21, Q22]])
-                val_rmax = l @ m @ r / (
-                    (max_lon - min_lon) * (max_colat - min_colat))
-
-                # linear interpolation top and bottom
-                taper = (val_rmax * (min_dep - rad) + val_rmin * (
-                    rad - max_dep)) / (min_dep - max_dep)
-            else:
-                taper = 1.0
-
-            for component in self.components:
-                Q11 = self.grid_data_ses3d.df[component].values[row_idx_min_min]
-                Q12 = self.grid_data_ses3d.df[component].values[row_idx_max_min]
-                Q21 = self.grid_data_ses3d.df[component].values[row_idx_min_max]
-                Q22 = self.grid_data_ses3d.df[component].values[row_idx_max_max]
-
-                r = np.array([[max_colat - colat], [colat - min_colat]])
-                m = np.array([[Q11, Q12], [Q21, Q22]])
-                l = np.array([max_lon - lon, lon - min_lon])
-                val_rmin = l @ m @ r / ((max_lon - min_lon) * (max_colat - min_colat))
-
-                # bi-linear interpolation top
-                # compute row position in arrays
-                # min colat, min lon
-                row_idx_min_min = colat_min * (
-                    num_depths * num_lons) + lon_min * num_depths + rmax
-                # max colat, min_lon
-                row_idx_max_min = colat_max * (
-                    num_depths * num_lons) + lon_min * num_depths + rmax
-                # min colat, max lon
-                row_idx_min_max = colat_min * (
-                    num_depths * num_lons) + lon_max * num_depths + rmax
-                # max colat, max lon
-                row_idx_max_max = colat_max * (
-                    num_depths * num_lons) + lon_max * num_depths + rmax
-
-                Q11 = self.grid_data_ses3d.df[component].values[row_idx_min_min]
-                Q12 = self.grid_data_ses3d.df[component].values[row_idx_max_min]
-                Q21 = self.grid_data_ses3d.df[component].values[row_idx_min_max]
-                Q22 = self.grid_data_ses3d.df[component].values[row_idx_max_max]
-
-                m = np.array([[Q11, Q12], [Q21, Q22]])
-                val_rmax = l @ m @ r / (
-                    (max_lon - min_lon) * (max_colat - min_colat))
-
-                # linear interpolation top and bottom
-                val = (val_rmax * (min_dep - rad) + val_rmin * (rad - max_dep)) / (min_dep - max_dep)
-
-                # ses3d_dmn.df["vsv"].values[idx] = np.rad2deg(val) / 1000.0
-                if self.model_info['component_type'] == 'perturbation_to_1D':
-                    one_d = ses3d_dmn.df['one_d_{}'.format(component)].values[idx]
-                    ses3d_dmn.df[component].values[idx] = ((one_d + val) * taper) + (1.0 - taper) * ses3d_dmn.df[component].values[idx]
-                elif self.model_info['component_type'] == 'perturbation_to_3D':
-                    ses3d_dmn.df[component].values[idx] = (ses3d_dmn.df[component].values[idx] + val) * taper + (1.0 - taper) * ses3d_dmn.df[component].values[idx]
-                elif self.model_info['component_type'] == 'absolute':
-                    ses3d_dmn.df[component].values[idx] = taper * val + (1.0 - taper) * ses3d_dmn.df[component].values[idx]
-                else:
-                    print(
-                        'No valid component_type. Must be perturbation_to_1D, perturbation_to_3D or absolute')
-
-        # Rotate back to the actual physical domain.
-        geometry = self.model_info['geometry']
-        if geometry['rotation'] is True and self.interp_method == "trilinear":
-            ses3d_dmn.rotate(np.radians(geometry['rot_angle']), geometry['rot_x'], geometry['rot_y'], geometry['rot_z'])
-
-        # Finally update GridData object
-        GridData.df.update(ses3d_dmn.df)
 
 
     # Nearest-neighbor interpolation. ==================================================================================
@@ -653,12 +462,15 @@ class Ses3d(object):
                 rad = ses3d_dmn.df['r'].values[idx]
 
                 if rad > np.max(unique_rads_region):
+                    # Set anything above to maximum
                     rad = np.max(unique_rads_region)
 
                 if rad <= np.min(unique_rads_region):
+                    # push radius to the minimum, region, such that they
+                    # get a value. The extract ses3dmn function
+                    # should ensure this only happens for a small region
                     rad = np.min(unique_rads_region) + 0.01
-                    # added the above line after issue at 50, 200 km with europe
-                    # return vals
+                    # This was added after issues at 50, 200 km in Europe
 
                 # simply skip edges
                 if colat > np.max(unique_colats_region) or\
@@ -818,11 +630,226 @@ class Ses3d(object):
         for _i, component in enumerate(self.components):
             ses3d_dmn.df[component].values[:] = results[:, _i]
 
-            # Rotate back to the actual physical domain.
+        # Rotate back to the actual physical domain.
         geometry = self.model_info['geometry']
         if geometry['rotation'] is True and self.interp_method == "trilinear":
-            ses3d_dmn.rotate(np.radians(geometry['rot_angle']), geometry['rot_x'], geometry['rot_y'], geometry['rot_z'])
+            ses3d_dmn.rotate(np.radians(geometry['rot_angle']),
+                             geometry['rot_x'], geometry['rot_y'],
+                             geometry['rot_z'])
 
-        # Finally update GridData object
+        # Finally update GridData object and delete altered coordinates
+        # such that only the velocities are updated.
+        del ses3d_dmn.df["x"]
+        del ses3d_dmn.df["y"]
+        del ses3d_dmn.df["z"]
+        del ses3d_dmn.df["r"]
+
         GridData.df.update(ses3d_dmn.df)
 
+    # def trilinear_interpolation(self, ses3d_dmn, GridData, region):
+    #     """
+    #     Essentially what is done here is loop through the points in the ses3d_dmn,
+    #     find the nearest indices and perform a trilinear interpolation.
+    #
+    #     :param ses3d_dmn: Subset of the GridData structure that falls into the ses3d domain
+    #     :param GridData: Master GridData structure
+    #     :return:
+    #     """
+    #
+    #     # Read the block_* files containing the coordinate lines. Make lists of indices characterising the subdomains.
+    #     with io.open(os.path.join(self.directory, 'block_x'), 'rt') as fh:
+    #         data = np.asarray(fh.readlines(), dtype=float)
+    #         unique_colats = _read_multi_region_file(data)
+    #     with io.open(os.path.join(self.directory, 'block_y'), 'rt') as fh:
+    #         data = np.asarray(fh.readlines(), dtype=float)
+    #         unique_lons = _read_multi_region_file(data)
+    #     with io.open(os.path.join(self.directory, 'block_z'), 'rt') as fh:
+    #         data = np.asanyarray(fh.readlines(), dtype=float)
+    #         unique_rads = _read_multi_region_file(data)
+    #
+    #     # Get centers of boxes.
+    #     for i, _ in enumerate(unique_colats):
+    #         unique_colats[i] = 0.5 * (unique_colats[i][1:] + unique_colats[i][:-1])
+    #         unique_lons[i] = 0.5 * (unique_lons[i][1:] + unique_lons[i][:-1])
+    #         unique_rads[i] = 0.5 * (unique_rads[i][1:] + unique_rads[i][:-1])
+    #
+    #     unique_colats_region = unique_colats[region]
+    #     unique_lons_region = unique_lons[region]
+    #     unique_rads_region = unique_rads[region]
+    #
+    #     num_colats = len(unique_colats_region)
+    #     num_lons = len(unique_lons_region)
+    #     num_depths = len(unique_rads_region)
+    #     tolerance = 0.0001
+    #
+    #     print("Performing trilinear interpolation for SES3D model... This can be a little slow")
+    #     for idx in range(len(ses3d_dmn.df["r"])):
+    #         if idx % 5000 == 0:
+    #             print(np.round(idx/len(ses3d_dmn.df["r"])*100.0, 2), "%", end="\r", flush=True)
+    #         colat = np.rad2deg(ses3d_dmn.df['c'].values[idx])
+    #         lon = np.rad2deg(ses3d_dmn.df['l'].values[idx])
+    #         rad = ses3d_dmn.df['r'].values[idx]
+    #
+    #         if rad > np.max(unique_rads_region):
+    #             rad = np.max(unique_rads_region)
+    #
+    #         if rad <= np.min(unique_rads_region):
+    #             # Push rads below lowest region to minimum radius
+    #             # to ensure they also get a value
+    #             # this fixes the issue at the 200 km layer in Europe
+    #             rad = np.min(unique_rads_region) + 0.01
+    #
+    #         # simply skip edges
+    #         if colat > np.max(unique_colats_region) or colat <= np.min(unique_colats_region):
+    #             continue
+    #
+    #         # handle edge case australia (quick fix)
+    #         if np.max(unique_lons_region) > 180.0 and lon < 0.0:
+    #             lon += 360
+    #
+    #         # skip longitude edge
+    #         if lon > np.max(unique_lons_region) or lon <= np.min(unique_lons_region):
+    #             continue
+    #
+    #         # Find surrounding vertices
+    #         colat_max = np.where(unique_colats_region - colat >= 0.0)[0][0]
+    #         colat_min = np.where(unique_colats_region - colat < 0.0)[0][-1]
+    #
+    #         lon_max = np.where(unique_lons_region - lon >= 0.0)[0][0]
+    #         lon_min = np.where(unique_lons_region - lon < 0.0)[0][-1]
+    #
+    #         rmin = np.where(unique_rads_region - rad < 0.0)[0][-1]
+    #         rmax = np.where(unique_rads_region - rad >= 0.0)[0][0]
+    #
+    #         max_colat = unique_colats_region[colat_max]
+    #         min_colat = unique_colats_region[colat_min]
+    #
+    #         max_lon = unique_lons_region[lon_max]
+    #         min_lon = unique_lons_region[lon_min]
+    #
+    #         min_dep = unique_rads_region[rmin]  # top
+    #         max_dep = unique_rads_region[rmax]  # bottom
+    #
+    #         # bi-linear interpolation bottom
+    #         # compute row position in arrays
+    #         # min colat, min lon
+    #         row_idx_min_min = colat_min * (
+    #             num_depths * num_lons) + lon_min * num_depths + rmin
+    #         # max colat, min_lon
+    #         row_idx_max_min = colat_max * (
+    #             num_depths * num_lons) + lon_min * num_depths + rmin
+    #         # min colat, max lon
+    #         row_idx_min_max = colat_min * (
+    #             num_depths * num_lons) + lon_max * num_depths + rmin
+    #         # max colat, max lon
+    #         row_idx_max_max = colat_max* (
+    #             num_depths * num_lons) + lon_max * num_depths + rmin
+    #
+    #         if self.model_info['taper']:
+    #             component = "taper"
+    #             Q11 = self.grid_data_ses3d.df[component].values[
+    #                 row_idx_min_min]
+    #             Q12 = self.grid_data_ses3d.df[component].values[
+    #                 row_idx_max_min]
+    #             Q21 = self.grid_data_ses3d.df[component].values[
+    #                 row_idx_min_max]
+    #             Q22 = self.grid_data_ses3d.df[component].values[
+    #                 row_idx_max_max]
+    #
+    #             r = np.array([[max_colat - colat], [colat - min_colat]])
+    #             m = np.array([[Q11, Q12], [Q21, Q22]])
+    #             l = np.array([max_lon - lon, lon - min_lon])
+    #             val_rmin = l @ m @ r / (
+    #             (max_lon - min_lon) * (max_colat - min_colat))
+    #
+    #             # bi-linear interpolation top
+    #             # compute row position in arrays
+    #             # min colat, min lon
+    #             row_idx_min_min = colat_min * (
+    #                 num_depths * num_lons) + lon_min * num_depths + rmax
+    #             # max colat, min_lon
+    #             row_idx_max_min = colat_max * (
+    #                 num_depths * num_lons) + lon_min * num_depths + rmax
+    #             # min colat, max lon
+    #             row_idx_min_max = colat_min * (
+    #                 num_depths * num_lons) + lon_max * num_depths + rmax
+    #             # max colat, max lon
+    #             row_idx_max_max = colat_max * (
+    #                 num_depths * num_lons) + lon_max * num_depths + rmax
+    #
+    #             Q11 = self.grid_data_ses3d.df[component].values[
+    #                 row_idx_min_min]
+    #             Q12 = self.grid_data_ses3d.df[component].values[
+    #                 row_idx_max_min]
+    #             Q21 = self.grid_data_ses3d.df[component].values[
+    #                 row_idx_min_max]
+    #             Q22 = self.grid_data_ses3d.df[component].values[
+    #                 row_idx_max_max]
+    #
+    #             m = np.array([[Q11, Q12], [Q21, Q22]])
+    #             val_rmax = l @ m @ r / (
+    #                 (max_lon - min_lon) * (max_colat - min_colat))
+    #
+    #             # linear interpolation top and bottom
+    #             taper = (val_rmax * (min_dep - rad) + val_rmin * (
+    #                 rad - max_dep)) / (min_dep - max_dep)
+    #         else:
+    #             taper = 1.0
+    #
+    #         for component in self.components:
+    #             Q11 = self.grid_data_ses3d.df[component].values[row_idx_min_min]
+    #             Q12 = self.grid_data_ses3d.df[component].values[row_idx_max_min]
+    #             Q21 = self.grid_data_ses3d.df[component].values[row_idx_min_max]
+    #             Q22 = self.grid_data_ses3d.df[component].values[row_idx_max_max]
+    #
+    #             r = np.array([[max_colat - colat], [colat - min_colat]])
+    #             m = np.array([[Q11, Q12], [Q21, Q22]])
+    #             l = np.array([max_lon - lon, lon - min_lon])
+    #             val_rmin = l @ m @ r / ((max_lon - min_lon) * (max_colat - min_colat))
+    #
+    #             # bi-linear interpolation top
+    #             # compute row position in arrays
+    #             # min colat, min lon
+    #             row_idx_min_min = colat_min * (
+    #                 num_depths * num_lons) + lon_min * num_depths + rmax
+    #             # max colat, min_lon
+    #             row_idx_max_min = colat_max * (
+    #                 num_depths * num_lons) + lon_min * num_depths + rmax
+    #             # min colat, max lon
+    #             row_idx_min_max = colat_min * (
+    #                 num_depths * num_lons) + lon_max * num_depths + rmax
+    #             # max colat, max lon
+    #             row_idx_max_max = colat_max * (
+    #                 num_depths * num_lons) + lon_max * num_depths + rmax
+    #
+    #             Q11 = self.grid_data_ses3d.df[component].values[row_idx_min_min]
+    #             Q12 = self.grid_data_ses3d.df[component].values[row_idx_max_min]
+    #             Q21 = self.grid_data_ses3d.df[component].values[row_idx_min_max]
+    #             Q22 = self.grid_data_ses3d.df[component].values[row_idx_max_max]
+    #
+    #             m = np.array([[Q11, Q12], [Q21, Q22]])
+    #             val_rmax = l @ m @ r / (
+    #                 (max_lon - min_lon) * (max_colat - min_colat))
+    #
+    #             # linear interpolation top and bottom
+    #             val = (val_rmax * (min_dep - rad) + val_rmin * (rad - max_dep)) / (min_dep - max_dep)
+    #
+    #             # ses3d_dmn.df["vsv"].values[idx] = np.rad2deg(val) / 1000.0
+    #             if self.model_info['component_type'] == 'perturbation_to_1D':
+    #                 one_d = ses3d_dmn.df['one_d_{}'.format(component)].values[idx]
+    #                 ses3d_dmn.df[component].values[idx] = ((one_d + val) * taper) + (1.0 - taper) * ses3d_dmn.df[component].values[idx]
+    #             elif self.model_info['component_type'] == 'perturbation_to_3D':
+    #                 ses3d_dmn.df[component].values[idx] = (ses3d_dmn.df[component].values[idx] + val) * taper + (1.0 - taper) * ses3d_dmn.df[component].values[idx]
+    #             elif self.model_info['component_type'] == 'absolute':
+    #                 ses3d_dmn.df[component].values[idx] = taper * val + (1.0 - taper) * ses3d_dmn.df[component].values[idx]
+    #             else:
+    #                 print(
+    #                     'No valid component_type. Must be perturbation_to_1D, perturbation_to_3D or absolute')
+    #
+    #     # Rotate back to the actual physical domain.
+    #     geometry = self.model_info['geometry']
+    #     if geometry['rotation'] is True and self.interp_method == "trilinear":
+    #         ses3d_dmn.rotate(np.radians(geometry['rot_angle']), geometry['rot_x'], geometry['rot_y'], geometry['rot_z'])
+    #
+    #     # Finally update GridData object
+    #     GridData.df.update(ses3d_dmn.df)
