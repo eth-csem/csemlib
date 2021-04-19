@@ -175,16 +175,9 @@ def csem2emc(parameter_file):
         rho.units = "kg/m3"
         rho.missing_value = 99999.0
 
-    # - Compute Cartesian coordinates and get material properties. -------------
-
-    # - Cartesian coordinates.
-
-    x = []
-    y = []
-    z = []
-
+    # Generate grid
     r = 6371.0 - depth  # radius in km
-    all_lats, all_lons, all_rads = np.meshgrid(lat, lon, r)
+    all_rads, all_lats, all_lons = np.meshgrid(r, lat, lon, indexing="ij")
     all_lats, all_lons, all_rads = np.array(
             (all_lats.ravel(), all_lons.ravel(), all_rads.ravel())
         )
@@ -198,7 +191,7 @@ def csem2emc(parameter_file):
     # - Get grid_data from CSEM evaluation at Cartesian grid points.
     grid_data = evaluate_csem(x, y, z)
 
-    # - Assign variables. ----------------------------------------------------------
+    # - Assign variables. ------------------------------------------------------
 
     lats[:] = lat
     lons[:] = lon
