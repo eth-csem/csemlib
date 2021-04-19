@@ -1,7 +1,4 @@
-import abc
-
 import numpy as np
-import pyximport
 
 from meshpy.tet import build, Options, MeshInfo
 
@@ -21,14 +18,13 @@ def triangulate(x, y, z, true_x=None, true_y=None, true_z=None):
     # Set up the simplex vertices.
     pts = np.array((x, y, z)).T
 
-    # Do the triangulation with MeshPy. Currently, this seems like the fastest way.
+    # Do the triangulation with MeshPy.
+    # Currently, this seems like the fastest way.
     mesh_info = MeshInfo()
     mesh_info.set_points(pts)
     opts = Options("Q")
     mesh = build(mesh_info, options=opts)
-    # if len(true_x) and len(true_y) and len(true_z):
-    #     mesh.set_points(np.array((true_x, true_y, true_z)).T)
-    #     mesh.write_vtk("/Users/michaelafanasiev/Desktop/test.vtk", pts, tetra=mesh.elements)
+
     return mesh.elements
 
 

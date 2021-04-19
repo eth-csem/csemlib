@@ -18,6 +18,7 @@ def fibonacci_sphere(n_samples):
     g = np.vectorize(populate)
     return np.fromfunction(g, (n_samples,))
 
+
 def fib_plane(n_samples):
     r_start = 0.0
     r_end = 1.0

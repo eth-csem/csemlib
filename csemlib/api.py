@@ -199,6 +199,8 @@ def csem2salvus_mesh(mesh):
     :param mesh: salvus.mesh.UnstructuredMesh object
     :return:
     """
+    # TODO: Ensure that this function also works for models that extend
+    # down to the core.
 
     # Map points to the sphere to easy point finding
     x, y, z = mesh.points.T / 1000.0
@@ -248,9 +250,8 @@ def csem2csv(lats, lons, depths, filename="csem.csv"):
     :param filename: Name of the CSV file
 
     """
-
-    from csemlib.tools.utils import sph2cart, lat2colat
     import pandas as pd
+    from csemlib.tools.utils import sph2cart, lat2colat
 
     rads = 6371.0 - depths
     all_lats, all_lons, all_rads = np.meshgrid(lats, lons, rads)
@@ -267,7 +268,7 @@ def csem2csv(lats, lons, depths, filename="csem.csv"):
     # Evaluate grid points
     grid_data = evaluate_csem(x,y,z)
 
-    # Write gridpoints to CSV
+    # Write grid points to CSV. Maintain original coordinates.
     df = pd.DataFrame({'lats': all_lats, 'lons': all_lons, "depths": 6371.0 - all_rads,
                 "VSV":grid_data.df["vsv"].values,
                 "VSH":grid_data.df["vsh"].values,
