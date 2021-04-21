@@ -517,7 +517,7 @@ class Ses3d(object):
                 row_idx_min_max_min = colat_min * (
                     num_depths * num_lons) + lon_max * num_depths + rmin
                 # max colat, max lon
-                row_idx_max_max_min = colat_max* (
+                row_idx_max_max_min = colat_max * (
                     num_depths * num_lons) + lon_max * num_depths + rmin
 
                 # bi-linear interpolation top
@@ -593,7 +593,7 @@ class Ses3d(object):
 
                     if self.model_info['component_type'] == 'perturbation_to_1D':
                         one_d = ses3d_dmn.df['one_d_{}'.format(component)].values[idx]
-                        vals[_i]  = ((one_d + val) * taper) + (1.0 - taper) * ses3d_dmn.df[component].values[idx]
+                        vals[_i] = ((one_d + val) * taper) + (1.0 - taper) * ses3d_dmn.df[component].values[idx]
                     elif self.model_info['component_type'] == 'perturbation_to_3D':
                         vals[_i] = (ses3d_dmn.df[component].values[idx] + val) * taper + (1.0 - taper) * ses3d_dmn.df[component].values[idx]
                     elif self.model_info['component_type'] == 'absolute':
@@ -675,10 +675,8 @@ class Ses3d(object):
     #     unique_lons_region = unique_lons[region]
     #     unique_rads_region = unique_rads[region]
     #
-    #     num_colats = len(unique_colats_region)
     #     num_lons = len(unique_lons_region)
     #     num_depths = len(unique_rads_region)
-    #     tolerance = 0.0001
     #
     #     print("Performing trilinear interpolation for SES3D model... This can be a little slow")
     #     for idx in range(len(ses3d_dmn.df["r"])):
@@ -795,6 +793,19 @@ class Ses3d(object):
     #             taper = 1.0
     #
     #         for component in self.components:
+    #             # bottom indices
+    #             row_idx_min_min = colat_min * (
+    #                     num_depths * num_lons) + lon_min * num_depths + rmin
+    #             # max colat, min_lon
+    #             row_idx_max_min = colat_max * (
+    #                     num_depths * num_lons) + lon_min * num_depths + rmin
+    #             # min colat, max lon
+    #             row_idx_min_max = colat_min * (
+    #                     num_depths * num_lons) + lon_max * num_depths + rmin
+    #             # max colat, max lon
+    #             row_idx_max_max = colat_max * (
+    #                     num_depths * num_lons) + lon_max * num_depths + rmin
+    #
     #             Q11 = self.grid_data_ses3d.df[component].values[row_idx_min_min]
     #             Q12 = self.grid_data_ses3d.df[component].values[row_idx_max_min]
     #             Q21 = self.grid_data_ses3d.df[component].values[row_idx_min_max]
