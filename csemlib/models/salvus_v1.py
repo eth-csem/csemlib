@@ -17,6 +17,9 @@ class Salvus_v1(object):
     This Class handles reading and evaluating Salvus V1 model files.
     It requires the initial and final model as well as the radius_1D field
     to correct applied topography or ellipticity.
+
+    Currently. and probably always. This class is only used for Neda's Iran
+    model.
     """
 
     def __init__(self, directory):
@@ -50,12 +53,20 @@ class Salvus_v1(object):
                 print(exc)
 
         # Read perturbations
+        taper = self.get_edge_taper(exodus_file=initial_file)
+        # This is just hardcoded, since there is only one Salvusv1 model.
+        edge_taper = True
+
         for param in self.params:
             with pyexodus.exodus(final_file) as e_final:
                 val = e_final.get_node_variable_values(param, step=1)
             with pyexodus.exodus(initial_file) as e_init:
                 val -= e_init.get_node_variable_values(param, step=1)
-                self.perturbations[param] = val
+
+                if edge_taper:
+                    self.perturbations[param] = val * taper
+                else:
+                    self.perturbations[param] = val
 
         # read points
         with pyexodus.exodus(initial_file) as e_init:
@@ -82,6 +93,51 @@ class Salvus_v1(object):
             # subtract 1, because exodus uses one based numbering
             self.connectivity -= 1
             self.connectivity = self.connectivity.astype("int64")
+
+    def get_edge_taper(self, exodus_file, taper_width=1200e3):
+        """
+        Returns an edge taper that can be applied to the perturbations.
+        This is Sine taper based on the distance
+        to the edge of the domain.
+
+        This requires the field inner_boundary to be present
+        By default uses the bottom and the sides of the domain.
+        Currently, this only applies to the Iran model.
+        """
+        from scipy.spatial import cKDTree
+        with pyexodus.exodus(exodus_file, mode="r") as init_e:
+            side_set_names = init_e.get_side_set_names()
+            if "inner_boundary" not in side_set_names:
+                raise Exception("Currently, inner_boundary is required")
+            side_nodes = []
+            for side_set in side_set_names:
+                if side_set == "surface":
+                    continue
+                if side_set == "r1":
+                    continue
+                else:
+                    idx = init_e.get_side_set_ids()[
+                        side_set_names.index(side_set)]
+                    _, nodes_side_set = init_e.get_side_set_node_list(idx)
+                    side_nodes.extend(nodes_side_set)
+
+            side_nodes = np.unique(side_nodes)  # remove duplicates
+            side_nodes -= 1  # exodus is 1 based, python is not
+
+            points = np.array(init_e.get_coords()).T
+            side_points = points[side_nodes]
+
+            # Setup KD tree to query distances to nearest edge point fast
+            side_point_tree = cKDTree(side_points)
+
+            dist, point_indices = side_point_tree.query(points, k=1)
+            taper = np.ones_like(dist)
+            # Compute sine taper
+            taper[dist <= taper_width] = \
+                (np.sin((dist[dist <= taper_width] /
+                         taper_width) * np.pi - 0.5 * np.pi) + 1) / 2
+
+            return taper
 
     def get_element_centroid(self):
         """
